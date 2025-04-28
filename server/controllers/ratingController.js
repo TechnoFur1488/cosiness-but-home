@@ -27,7 +27,9 @@ class RatingController {
             const { name, grade, gradeText } = req.body;
             const sessionId = req.sessionId;
 
-
+            // if (gradeText.length > 1000) {
+            //     return res.status(400).json({ message: "Описание не может привышать больше 1000 символов" })
+            // }
 
             if (!name || !grade) {
 
@@ -76,7 +78,7 @@ class RatingController {
             }
 
             const imageUrls = await Promise.all(files.map(async (file) => {
-                const response = drive.files.create({
+                const response = await drive.files.create({
                     requestBody: {
                         name: file.originalname || path.basename(file.path),
                         mimeType: file.mimetype,
@@ -94,15 +96,15 @@ class RatingController {
                         type: "anyone"
                     }
                 })
-
-                return `https://drive.google.com/uc?export=view&id=${response.data.id}`
+ 
+                return `https://drive.google.com/uc?export=view&id=${response.data.id}` 
             }))
 
             files.forEach(file => {
                 fs.unlinkSync(file.path)
             })
 
-            const ratings = await Rating.create({ name, grade, gradeText, img: imageUrls, productId: product.id, sessionId })
+            const ratings = await Rating.create({ name, grade, gradeText: gradeText, img: imageUrls, productId: productId, sessionId })
 
             return res.status(201).json({ ratings, message: "Рейтинг успешно создан" })
 
@@ -126,7 +128,7 @@ class RatingController {
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
-            const rating = await Rating.findAll({ where: { productId } })
+            const rating = await Rating.findAll({ where: { productId }, order: [["createdAt", "DESC"]] })
 
             return res.status(200).json({ rating })
 
@@ -254,9 +256,11 @@ class RatingController {
     }
 
     async deleteRating(req, res) {
+
+        const files = req.files || []
+
         try {
             const { id } = req.params
-            const files = req.files
             const sessionId = req.sessionId
 
             if (!id) {

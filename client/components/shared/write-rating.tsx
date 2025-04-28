@@ -32,19 +32,12 @@ export const WriteRating: React.FC<Props> = ({ }) => {
     const router = useParams()
     const productId = Number(router.productId)
     const [postData] = usePostRatingMutation()
-    const [fileInputs, setFileInputs] = useState([0])
-
-
-    const addFileInput = () => {
-        setFileInputs([...fileInputs, fileInputs.length])
-    }
 
     const formSchema = z.object({
         name: z.string().min(2, { message: "Минимум 2 символа" }),
         grade: z.number().min(1).max(5),
         gradeText: z.string().max(1000, { message: "Максимум 1000 символов" }),
-        
-        img: z.array(z.string()),
+        img: z.any().optional(),
     })
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -53,20 +46,29 @@ export const WriteRating: React.FC<Props> = ({ }) => {
             name: "",
             grade: 0,
             gradeText: "",
-            img: [],
+            img: null,
         }
     })
 
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
         try {
+            const formData = new FormData()
 
-            await postData({
-                productId,
-                newRating: data
-            }).unwrap()
+            formData.append("name", data.name)
+            formData.append("grade", String(data.grade))
+            formData.append("productId", String(productId))
 
+            if (data.img) {
+                formData.append("img", data.img)
+            }
+            if (data.gradeText) {
+                formData.append("gradeText", data.gradeText)
+            }
+
+            await postData(formData).unwrap()
+            form.reset
         } catch (err) {
-            console.error(err)
+            alert("Вы уже оставили отзыв")
         }
     }
 
@@ -74,7 +76,7 @@ export const WriteRating: React.FC<Props> = ({ }) => {
 
     return (
         <AlertDialog>
-            <AlertDialogTrigger className={"cursor-pointer"}>Написать отзыв</AlertDialogTrigger>
+            <AlertDialogTrigger className={"bg-[#E5E5EA] text-[#6E6E73] rounded-2xl w-[313px] h-[39px] cursor-pointer hover:bg-[#DBDBDB] transition duration-150"}>Написать отзыв</AlertDialogTrigger>
             <AlertDialogContent>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -129,7 +131,10 @@ export const WriteRating: React.FC<Props> = ({ }) => {
                                     <FormItem>
                                         <FormLabel>Напишите отзыв</FormLabel>
                                         <FormControl>
-                                            <Textarea className='resize-none' {...field} />
+                                            <div>
+                                                <Textarea className='resize-none' {...field} maxLength={1000} />
+                                                {field.value.length !== 1000 ? <span>{field.value.length}/1000</span> : <span className='text-red-500'>Введенна максимальная длинна отзыва</span>}
+                                            </div>
                                         </FormControl>
                                     </FormItem>
                                 )}
@@ -142,32 +147,10 @@ export const WriteRating: React.FC<Props> = ({ }) => {
                                         <FormLabel>Фото</FormLabel>
                                         <FormControl>
                                             <div className="space-y-2">
-                                                {fileInputs.map((inputKey) => (
-                                                    <div key={inputKey} className="flex items-center gap-2">
-                                                        <Input
-                                                            type="file"
-                                                            onChange={(e) => {
-                                                                const files = e.target.files
-                                                                if (files && files.length > 0) {
-                                                                    field.onChange([
-                                                                        ...(field.value || []),
-                                                                        files[0]
-                                                                    ])
-                                                                }
-                                                            }}
-                                                        />
-                                                    </div>
-                                                ))}
-                                                <Button
-                                                    type="button"
-                                                    onClick={addFileInput}
-                                                    variant="outline"
-                                                    size="icon"
-                                                    disabled={fileInputs.length >= 10}
-                                                    className='w-full'
-                                                >
-                                                    <Plus className="h-4 w-4" />
-                                                </Button>
+                                                <Input type='file' onChange={e => {
+                                                    const file = e.target.files?.[0]
+                                                    field.onChange(file || null)
+                                                }} />
                                             </div>
                                         </FormControl>
                                         <FormDescription>Максимум 10 фото</FormDescription>

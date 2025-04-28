@@ -68,7 +68,7 @@ const Rating = sequelize.define("rating", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: DataTypes.STRING, allowNull: false },
     grade: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-    gradeText: { type: DataTypes.STRING, allowNull: true },
+    gradeText: { type: DataTypes.TEXT, allowNull: true },
     img: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: true },
     sessionId: {type: DataTypes.STRING, allowNull: false}
 }, {

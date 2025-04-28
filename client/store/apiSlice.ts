@@ -16,12 +16,13 @@ interface Products {
 }
 
 interface Rating {
-    id: number,
-    name: string,
-    grade: number,
-    gradeText: string,
-    img: Array<string>,
+    id: number
+    name: string
+    grade: number
+    gradeText: string
+    img: Array<string>
     productId: number
+    createdAt: string
 }
 
 interface PostRating {
@@ -83,11 +84,20 @@ export const apiSlice = createApi({
             query: (productId) => `/api/rating/${productId}`,
             providesTags: ["Rating"]
         }),
-        postRating: builder.mutation<PostRating, { productId: number, newRating: PostRating}> ({
-            query: ({ productId, newRating }) => ({
-                url: `/api/rating/${productId}`,
+        postRating: builder.mutation<PostRating, FormData> ({
+            query: (formData) => ({
+                url: `/api/rating/${formData.get("productId")}`,
                 method: "POST",
-                body: newRating
+                body: formData,
+                credentials: "include"
+            }),
+            invalidatesTags: ["Rating"]
+        }),
+        deleteRating: builder.mutation<void, number>({
+            query: (id) => ({
+                url: `/api/rating/${id}`,
+                method: "DELETE",
+                credentials: "include"
             }),
             invalidatesTags: ["Rating"]
         }),
@@ -105,7 +115,8 @@ export const apiSlice = createApi({
 export const {
     useLazyGetProductsQuery,
     useGetOneProductsQuery,
-    useGetRatingQuery,
     usePostRatingMutation,
+    useGetRatingQuery,
+    useDeleteRatingMutation,
     usePostOrderOneMutation,
 } = apiSlice
