@@ -80,11 +80,11 @@ export const apiSlice = createApi({
             query: (id) => `/api/products/${id}`,
             providesTags: ["Product"]
         }),
-        getRating: builder.query<{rating: Rating[]}, number>({
+        getRating: builder.query<{ rating: Rating[] }, number>({
             query: (productId) => `/api/rating/${productId}`,
             providesTags: ["Rating"]
         }),
-        postRating: builder.mutation<PostRating, FormData> ({
+        postRating: builder.mutation<PostRating, FormData>({
             query: (formData) => ({
                 url: `/api/rating/${formData.get("productId")}`,
                 method: "POST",
@@ -101,6 +101,15 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ["Rating"]
         }),
+        updateRating: builder.mutation<PostRating, FormData>({
+            query: (formData) => ({
+                url: `/api/rating/${formData.get("id")}`,
+                method: "PUT",
+                body: formData,
+                credentials: "include"
+            }),
+            invalidatesTags: ["Rating"]
+        }),
         postOrderOne: builder.mutation<Order, { productId: number, newOrder: Order }>({
             query: ({ productId, newOrder }) => ({
                 url: `/api/order/${productId}`,
@@ -113,10 +122,15 @@ export const apiSlice = createApi({
 })
 
 export const {
+
     useLazyGetProductsQuery,
     useGetOneProductsQuery,
+
     usePostRatingMutation,
     useGetRatingQuery,
     useDeleteRatingMutation,
+    useUpdateRatingMutation,
+
     usePostOrderOneMutation,
+
 } = apiSlice

@@ -139,10 +139,12 @@ class RatingController {
     }
 
     async updateRating(req, res) {
+
+        const files = req.files || []
+
         try {
             const { id } = req.params
             const { name, grade, gradeText } = req.body
-            const files = req.files
             const sessionId = req.sessionId
 
             if (files > 10) {
@@ -206,12 +208,12 @@ class RatingController {
                         fs.unlinkSync(file.path)
                     })
 
-                    return res.status(500).json({ message: "Ошибка сервера" })
+                    return res.status(500).json({ message: "Ошибка сервера" }) 
                 }
             }))
 
             const imageUrls = await Promise.all(files.map(async (file) => {
-                const response = drive.files.create({
+                const response = await drive.files.create({
                     requestBody: {
                         name: file.originalname || path.basename(file.path),
                         mimeType: file.mimetype,
@@ -296,7 +298,7 @@ class RatingController {
 
 
                     files.forEach(file => {
-                        fs.unlinkSync(file.path)
+                        fs.unlinkSync(file.path)  
                     })
 
                     console.error(err)
@@ -316,7 +318,7 @@ class RatingController {
             files.forEach(file => {
                 fs.unlinkSync(file.path)
             })
-
+ 
             return res.status(500).json({ message: "Ошибка сервера" })
         }
 

@@ -11,9 +11,9 @@ import 'swiper/css/navigation';
 
 import { Navigation } from 'swiper/modules';
 import { WriteRating } from './write-rating'
-import Link from 'next/link'
-import { ModalInformation } from './modal-information'
 import Image from 'next/image'
+import { UpdateRating } from './update-rating'
+import { cn } from '@/lib/utils'
 
 interface Props {
     className?: string
@@ -131,7 +131,7 @@ export const Rating: React.FC<Props> = ({ }) => {
                                 <div className='flex justify-between'>
                                     <div>
                                         <button className='cursor-pointer' onClick={() => handleDelete(el.id)}><Trash width={20} /></button>
-                                        <button className='cursor-pointer ml-3'><Pencil width={20} /> </button>
+                                        <UpdateRating isId={el.id} />
                                     </div>
                                     <span className='text-[13px]'>{datePublic(el.createdAt)}</span>
                                 </div>

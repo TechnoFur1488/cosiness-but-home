@@ -1,6 +1,8 @@
-"use client"
-
+import { useUpdateRatingMutation } from '@/store/apiSlice'
+import { zodResolver } from '@hookform/resolvers/zod'
 import React from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -11,32 +13,26 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Pencil, Star } from 'lucide-react'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '../ui/form'
-import { z } from "zod"
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { usePostRatingMutation } from '@/store/apiSlice'
-import { useParams } from 'next/navigation'
-import { Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 
 interface Props {
     className?: string
+    isId: number
 }
 
+export const UpdateRating: React.FC<Props> = ({ className, isId }) => {
 
-export const WriteRating: React.FC<Props> = ({ }) => {
-    const router = useParams()
-    const productId = Number(router.productId)
-    const [postData] = usePostRatingMutation()
+    const [updateRating] = useUpdateRatingMutation()
 
     const formSchema = z.object({
         name: z.string().min(2, { message: "Минимум 2 символа" }),
         grade: z.number().min(1).max(5),
         gradeText: z.string().max(1000, { message: "Максимум 1000 символов" }),
-        img: z.any().optional(),
+        img: z.any().optional()
     })
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -45,7 +41,7 @@ export const WriteRating: React.FC<Props> = ({ }) => {
             name: "",
             grade: 0,
             gradeText: "",
-            img: null,
+            img: null
         }
     })
 
@@ -53,9 +49,9 @@ export const WriteRating: React.FC<Props> = ({ }) => {
         try {
             const formData = new FormData()
 
+            formData.append("id", String(isId))
             formData.append("name", data.name)
             formData.append("grade", String(data.grade))
-            formData.append("productId", String(productId))
 
             if (data.img) {
                 formData.append("img", data.img)
@@ -64,26 +60,23 @@ export const WriteRating: React.FC<Props> = ({ }) => {
                 formData.append("gradeText", data.gradeText)
             }
 
-            await postData(formData).unwrap()
-            form.reset
+            await updateRating(formData).unwrap()
         } catch (err) {
-            alert("Вы уже оставили отзыв")
+            alert("не ваш отзыв")
         }
     }
 
-    const isFormValid = form.formState.isValid
-
     return (
         <AlertDialog>
-            <AlertDialogTrigger className={"bg-[#E5E5EA] text-[#6E6E73] rounded-2xl w-[313px] h-[39px] cursor-pointer hover:bg-[#DBDBDB] transition duration-150"}>Написать отзыв</AlertDialogTrigger>
+            <AlertDialogTrigger className='cursor-pointer ml-3'><Pencil width={20} /></AlertDialogTrigger>
             <AlertDialogContent>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Напишите отзыв</AlertDialogTitle>
+                            <AlertDialogTitle>Что вы хотите изменить?</AlertDialogTitle>
                             <FormField
                                 control={form.control}
-                                name="grade"
+                                name='grade'
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Оценка</FormLabel>
@@ -91,7 +84,7 @@ export const WriteRating: React.FC<Props> = ({ }) => {
                                             <div>
                                                 {[1, 2, 3, 4, 5].map((el) => (
                                                     <button
-                                                        type="button"
+                                                        type='button'
                                                         key={el}
                                                         onClick={() => field.onChange(el)}
                                                     >
@@ -112,7 +105,7 @@ export const WriteRating: React.FC<Props> = ({ }) => {
                             />
                             <FormField
                                 control={form.control}
-                                name="name"
+                                name='name'
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Ваше имя</FormLabel>
@@ -124,7 +117,7 @@ export const WriteRating: React.FC<Props> = ({ }) => {
                             />
                             <FormField
                                 control={form.control}
-                                name="gradeText"
+                                name='gradeText'
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Напишите отзыв</FormLabel>
@@ -139,7 +132,7 @@ export const WriteRating: React.FC<Props> = ({ }) => {
                             />
                             <FormField
                                 control={form.control}
-                                name="img"
+                                name='img'
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Фото</FormLabel>
@@ -158,12 +151,11 @@ export const WriteRating: React.FC<Props> = ({ }) => {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Вернуться</AlertDialogCancel>
-                            <AlertDialogAction disabled={!isFormValid} type='submit'>Отправить отзыв</AlertDialogAction>
+                            <AlertDialogAction type='submit'>Обновить отзыв</AlertDialogAction>
                         </AlertDialogFooter>
                     </form>
                 </Form>
             </AlertDialogContent>
         </AlertDialog>
-
     )
 }
