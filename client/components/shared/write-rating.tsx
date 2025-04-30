@@ -26,7 +26,6 @@ interface Props {
     className?: string
 }
 
-
 export const WriteRating: React.FC<Props> = ({ }) => {
     const router = useParams()
     const productId = Number(router.productId)
@@ -36,7 +35,12 @@ export const WriteRating: React.FC<Props> = ({ }) => {
         name: z.string().min(2, { message: "Минимум 2 символа" }),
         grade: z.number().min(1).max(5),
         gradeText: z.string().max(1000, { message: "Максимум 1000 символов" }),
-        img: z.any().optional(),
+        img: z.instanceof(FileList).optional()
+            .refine(files => !files || files.length <= 10, "Максимум 10 изображений")
+            .refine(files => {
+                if (!files) return true;
+                return Array.from(files).every(file => file.size <= 5_000_000) 
+            }, "Каждое изображение должно быть меньше 5MB"),
     })
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -45,7 +49,7 @@ export const WriteRating: React.FC<Props> = ({ }) => {
             name: "",
             grade: 0,
             gradeText: "",
-            img: null,
+            img: undefined,
         }
     })
 
@@ -58,14 +62,16 @@ export const WriteRating: React.FC<Props> = ({ }) => {
             formData.append("productId", String(productId))
 
             if (data.img) {
-                formData.append("img", data.img)
+                Array.from(data.img).forEach((file) => {
+                    formData.append(`img`, file)
+                })
             }
             if (data.gradeText) {
                 formData.append("gradeText", data.gradeText)
             }
 
             await postData(formData).unwrap()
-            form.reset
+            form.reset()
         } catch (err) {
             alert("Вы уже оставили отзыв")
         }
@@ -140,30 +146,49 @@ export const WriteRating: React.FC<Props> = ({ }) => {
                             <FormField
                                 control={form.control}
                                 name="img"
-                                render={({ field }) => (
+                                render={({ field: { onChange, value, ...rest } }) => (
                                     <FormItem>
                                         <FormLabel>Фото</FormLabel>
                                         <FormControl>
                                             <div className="space-y-2">
-                                                <Input type='file' onChange={e => {
-                                                    const file = e.target.files?.[0]
-                                                    field.onChange(file || null)
-                                                }} />
+                                                <Input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    multiple
+                                                    {...rest}
+                                                    onChange={(e) => {
+                                                        onChange(e.target.files)
+                                                    }}
+                                                />
                                             </div>
                                         </FormControl>
-                                        <FormDescription>Максимум 10 фото</FormDescription>
+                                        <FormDescription>
+                                            {value?.length
+                                                ? `Выбрано ${value.length} файлов (максимум 10)`
+                                                : "Максимум 10 фото"}
+                                        </FormDescription>
+                                        {form.formState.errors.img && (
+                                            <p className="text-red-500 text-sm">
+                                                {form.formState.errors.img.message}
+                                            </p>
+                                        )}
                                     </FormItem>
                                 )}
                             />
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Вернуться</AlertDialogCancel>
-                            <AlertDialogAction disabled={!isFormValid} type='submit'>Отправить отзыв</AlertDialogAction>
+                            <AlertDialogAction
+                                className={"bg-[#E5E5EA] text-black cursor-pointer hover:bg-[#DBDBDB] transition duration-150"}
+                                disabled={!isFormValid}
+                                type='submit'
+                            >
+                                Отправить отзыв
+                            </AlertDialogAction>
                         </AlertDialogFooter>
                     </form>
                 </Form>
             </AlertDialogContent>
         </AlertDialog>
-
     )
 }

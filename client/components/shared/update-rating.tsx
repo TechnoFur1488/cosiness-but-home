@@ -20,11 +20,14 @@ import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 
 interface Props {
-    className?: string
     isId: number
+    isGrade: number
+    isName: string
+    isGradeText: string
+    isImg: Array<string>
 }
 
-export const UpdateRating: React.FC<Props> = ({ className, isId }) => {
+export const UpdateRating: React.FC<Props> = ({ isId, isGrade, isName, isGradeText, isImg }) => {
 
     const [updateRating] = useUpdateRatingMutation()
 
@@ -32,16 +35,21 @@ export const UpdateRating: React.FC<Props> = ({ className, isId }) => {
         name: z.string().min(2, { message: "Минимум 2 символа" }),
         grade: z.number().min(1).max(5),
         gradeText: z.string().max(1000, { message: "Максимум 1000 символов" }),
-        img: z.any().optional()
+        img: z.instanceof(FileList).optional()
+            .refine(files => !files || files.length <= 10, "Максимум 10 изображений")
+            .refine(files => {
+                if (!files) return true;
+                return Array.from(files).every(file => file.size <= 5_000_000)
+            }, "Каждое изображение должно быть меньше 5MB"),
     })
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            name: "",
-            grade: 0,
-            gradeText: "",
-            img: null
+            name: isName,
+            grade: isGrade,
+            gradeText: isGradeText,
+            img: undefined
         }
     })
 
@@ -54,7 +62,9 @@ export const UpdateRating: React.FC<Props> = ({ className, isId }) => {
             formData.append("grade", String(data.grade))
 
             if (data.img) {
-                formData.append("img", data.img)
+                Array.from(data.img).forEach((file) => {
+                    formData.append(`img`, file)
+                })
             }
             if (data.gradeText) {
                 formData.append("gradeText", data.gradeText)
@@ -66,9 +76,11 @@ export const UpdateRating: React.FC<Props> = ({ className, isId }) => {
         }
     }
 
+    const isFormValid = form.formState.isValid
+
     return (
         <AlertDialog>
-            <AlertDialogTrigger className='cursor-pointer ml-3'><Pencil width={20} /></AlertDialogTrigger>
+            <AlertDialogTrigger className='cursor-pointer ml-3'><Pencil className=' hover:text-green-600 duration-300 transition hover:scale-120' width={20} /></AlertDialogTrigger>
             <AlertDialogContent>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -132,26 +144,40 @@ export const UpdateRating: React.FC<Props> = ({ className, isId }) => {
                             />
                             <FormField
                                 control={form.control}
-                                name='img'
-                                render={({ field }) => (
+                                name="img"
+                                render={({ field: { onChange, value, ...rest } }) => (
                                     <FormItem>
                                         <FormLabel>Фото</FormLabel>
                                         <FormControl>
                                             <div className="space-y-2">
-                                                <Input type='file' onChange={e => {
-                                                    const file = e.target.files?.[0]
-                                                    field.onChange(file || null)
-                                                }} />
+                                                <Input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    multiple
+                                                    {...rest}
+                                                    onChange={(e) => {
+                                                        onChange(e.target.files)
+                                                    }}
+                                                />
                                             </div>
                                         </FormControl>
-                                        <FormDescription>Максимум 10 фото</FormDescription>
+                                        <FormDescription>
+                                            {value?.length
+                                                ? `Выбрано ${value.length} файлов (максимум 10)`
+                                                : "Максимум 10 фото"}
+                                        </FormDescription>
+                                        {form.formState.errors.img && (
+                                            <p className="text-red-500 text-sm">
+                                                {form.formState.errors.img.message}
+                                            </p>
+                                        )}
                                     </FormItem>
                                 )}
                             />
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Вернуться</AlertDialogCancel>
-                            <AlertDialogAction type='submit'>Обновить отзыв</AlertDialogAction>
+                            <AlertDialogAction className={"bg-[#E5E5EA]  text-black cursor-pointer hover:bg-[#DBDBDB] transition duration-150"} disabled={!isFormValid} type='submit'>Обновить отзыв</AlertDialogAction>
                         </AlertDialogFooter>
                     </form>
                 </Form>

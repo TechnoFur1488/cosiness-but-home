@@ -1,4 +1,3 @@
-import { Rating } from "@/components/shared"
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 
 interface Products {
