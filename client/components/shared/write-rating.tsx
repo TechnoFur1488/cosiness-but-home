@@ -60,14 +60,12 @@ export const WriteRating: React.FC<Props> = ({ }) => {
             formData.append("name", data.name)
             formData.append("grade", String(data.grade))
             formData.append("productId", String(productId))
+            formData.append("gradeText", data.gradeText)
 
             if (data.img) {
                 Array.from(data.img).forEach((file) => {
                     formData.append(`img`, file)
                 })
-            }
-            if (data.gradeText) {
-                formData.append("gradeText", data.gradeText)
             }
 
             await postData(formData).unwrap()

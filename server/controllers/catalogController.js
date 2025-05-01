@@ -1,4 +1,4 @@
-import { Catalog } from "../model/model.js"
+import { Catalog, Product } from "../model/model.js"
 
 class CatalogController {
     async create(req, res) {
@@ -69,17 +69,21 @@ class CatalogController {
 
     async getAllCatalogProducts(req, res) {
         try {
-            const { id } = req.params
+            const { catalogId } = req.params
 
-            if (!id) {
+            const offset = parseInt(req.query.offset) || 0
+            const limit = 12
+
+            if (!catalogId) {
                 return res.status(404).json({ message: "Такого каталога не существует" })
             }
 
-            const products = await Catalog.findByPk(id, {
-                include: Product
-            })
+            const { count, rows: products } = await Product.findAndCountAll({ where: { catalogId }, limit, offset, order: [["createdAt", "DESC"]] })
 
-            return res.status(200).json({ products })
+            const hasMore = offset + limit < count
+            const nextOffset = hasMore ? offset + limit : null
+
+            return res.status(200).json({ products, hasMore, nextOffset })
 
         } catch (err) {
             console.error(err)

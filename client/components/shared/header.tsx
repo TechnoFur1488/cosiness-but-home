@@ -42,7 +42,7 @@ export const Header: React.FC<Props> = ({ }) => {
 
     return (
         <>
-            <header className={'py-5 sticky top-0 z-100 bg-white'} style={{ paddingRight: bar ? `${scrollbarWidth}px` : "", marginRight: bar ? `-${scrollbarWidth}px` : "" }}  >
+            <header className={'py-5 sticky top-0 z-50 bg-white'} style={{ paddingRight: bar ? `${scrollbarWidth}px` : "", marginRight: bar ? `-${scrollbarWidth}px` : "" }}  >
                 <Container className='flex items-center justify-between'>
                     <div className='flex justify-between w-[267px]'>
                         <Link href={"/"}>
@@ -54,7 +54,7 @@ export const Header: React.FC<Props> = ({ }) => {
                     </div>
                     <Input className='w-177.5 h-[47px] bg-[#E5E5EA] hover:bg-[#DBDBDB] transition-colors' type='text' placeholder='Поиск' />
                     <div className='flex justify-between w-[191px]'>
-                        <Link href={"/"}>
+                        <Link href={"/cart"}>
                             <ShoppingCart fill='currentColor' className='text-[#E5E5EA] hover:text-[#DBDBDB] transition-colors' width={37} height={37} />
                         </Link>
                         <Link href={"/"}>
@@ -65,7 +65,7 @@ export const Header: React.FC<Props> = ({ }) => {
             </header>
             <div className={cn( "fixed inset-0 z-40 transition-opacity duration-300", bar ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none")}>
                 <div className={"absolute inset-0 bg-black opacity-50"} onClick={() => setBar(false)} /> 
-                <Bar isOpen={bar} />
+                <Bar isSetBar={setBar} isOpen={bar} />
             </div>
         </>
     )

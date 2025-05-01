@@ -5,7 +5,7 @@ const router = Router()
 
 router.post("/", catalogController.create)
 router.get("/", catalogController.getAllCatalog)
-router.get("/:id", catalogController.getAllCatalogProducts)
+router.get("/:catalogId", catalogController.getAllCatalogProducts)
 router.put("/:id", catalogController.updateCatalog)
 router.delete("/:id", catalogController.deleteCatalog)
 

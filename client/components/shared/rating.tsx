@@ -1,9 +1,9 @@
 "use client"
 
 import { useDeleteRatingMutation, useGetRatingQuery } from '@/store/apiSlice'
-import { Star, Trash, Pencil } from 'lucide-react'
+import { Star, Trash } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import React from 'react'
+import React, { useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 
 import 'swiper/css';
@@ -13,7 +13,6 @@ import { Navigation } from 'swiper/modules';
 import { WriteRating } from './write-rating'
 import Image from 'next/image'
 import { UpdateRating } from './update-rating'
-import { cn } from '@/lib/utils'
 import { ModalInformation } from './modal-information'
 
 interface Props {
@@ -35,6 +34,7 @@ export const Rating: React.FC<Props> = ({ }) => {
     const productId = router.productId
     const { data, isLoading, isError } = useGetRatingQuery(Number(productId))
     const [deleteRating] = useDeleteRatingMutation()
+    const [bigImg, setBigImg] = useState(false)
 
     if (isLoading) return <h1>Загрузка</h1>
     if (isError) return <h1>Ошибка</h1>
@@ -60,7 +60,7 @@ export const Rating: React.FC<Props> = ({ }) => {
     const averageRating = data.rating.reduce((sum, el) => sum + el.grade, 0) / data.rating.length
     return (
         <div className={"mt-20"}>
-            <span>Средний рейтинг: {averageRating.toFixed(1)}</span>
+            {averageRating ? <span>Средний рейтинг: {averageRating.toFixed(1)}</span> : <span>Отзывов пока что нет</span>}
             <div className='flex justify-between py-3'>
                 <Swiper style={{
                     '--swiper-navigation-color': 'black',
@@ -123,6 +123,7 @@ export const Rating: React.FC<Props> = ({ }) => {
                             gradeText = gradeText.slice(0, 150) + "..."
                         }
 
+
                         return (
                             <SwiperSlide className='flex flex-col bg-[#F8F8F8] min-w-[467px] min-h-[207px] p-3 rounded-2xl' key={el.id}>
                                 <div className='w-full flex justify-between items-center'>
@@ -143,9 +144,16 @@ export const Rating: React.FC<Props> = ({ }) => {
                                             <ModalInformation>{el.gradeText}</ModalInformation>
                                         )}
                                     </p>
-                                    {el.img.map((el, i) => (
-                                        <Image className='rounded-2xl' key={i} src={el} width={100} height={100} alt='Фото отзыва' />
-                                    ))}
+                                    <Swiper modules={[Navigation]} className='w-40 flex justify-center' slidesPerView={1} spaceBetween={10}>
+                                        {el.img.map((el, i) => (
+                                            <SwiperSlide key={i}>
+                                                <button className='cursor-pointer' onClick={e => setBigImg(true)}>
+                                                    <Image src={el} width={100} height={120} alt='Фото отзыва' />
+                                                </button>
+                                            </SwiperSlide>
+                                        ))}
+                                    </Swiper>
+
                                 </div>
                             </SwiperSlide>
                         )
@@ -154,6 +162,6 @@ export const Rating: React.FC<Props> = ({ }) => {
             </div>
             <WriteRating />
 
-        </div>
+        </div >
     )
 }

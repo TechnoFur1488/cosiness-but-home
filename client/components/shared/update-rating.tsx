@@ -48,7 +48,7 @@ export const UpdateRating: React.FC<Props> = ({ isId, isGrade, isName, isGradeTe
         defaultValues: {
             name: isName,
             grade: isGrade,
-            gradeText: isGradeText,
+            gradeText: isGradeText || "",
             img: undefined
         }
     })
@@ -60,14 +60,12 @@ export const UpdateRating: React.FC<Props> = ({ isId, isGrade, isName, isGradeTe
             formData.append("id", String(isId))
             formData.append("name", data.name)
             formData.append("grade", String(data.grade))
+            formData.append("gradeText", data.gradeText)
 
             if (data.img) {
                 Array.from(data.img).forEach((file) => {
                     formData.append(`img`, file)
                 })
-            }
-            if (data.gradeText) {
-                formData.append("gradeText", data.gradeText)
             }
 
             await updateRating(formData).unwrap()

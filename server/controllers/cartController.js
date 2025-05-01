@@ -7,15 +7,16 @@ class CartController {
             const cart = req.cart
 
             const product = await Product.findByPk(productId)
-
+            
+            if (!product) {
+                return res.status(404).json({ message: "Такого товара не существует" })
+            }
+            
             const [w, l] = size.split("x").map(Number)
             const squareMeters = w * l
             const price = product.price * squareMeters
             const total = price * quantity
 
-            if (!product) {
-                return res.status(404).json({ message: "Такого товара не существует" })
-            }
 
             let cartItem = await CartProduct.findOne({ where: { cartId: cart.id, productId, size, total } })
 
@@ -26,7 +27,7 @@ class CartController {
                     total: price * newQuantity
                 })
             } else {
-                await CartProduct.create({ cartId: cart.id, productId, quantity, size, total, price: product.price })
+                await CartProduct.create({ cartId: cart.id, productId, quantity, size, total })
             }
 
             const cartProducts = await CartProduct.findAll({ where: { cartId: cart.id }, include: [Product], order: [["createdAt", "DESC"]] })
@@ -35,7 +36,7 @@ class CartController {
 
         } catch (err) {
             console.error(err)
-            return res.status(500).json({ message: "Ошибка сервера" })
+            return res.status(500).json({ message: "Ошибка сервера" }) 
         }
     }
 

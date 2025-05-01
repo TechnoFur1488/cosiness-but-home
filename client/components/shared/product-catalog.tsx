@@ -1,11 +1,10 @@
 "use client"
 
-import { useGetRatingQuery, useLazyGetProductsQuery } from '@/store/apiSlice'
-import React, { useEffect, useRef, useState, useMemo } from 'react'
+import { useLazyGetProductsCatalogQuery } from '@/store/apiSlice'
 import Link from 'next/link'
-import { ProductImg } from './product-img'
 import { useParams } from 'next/navigation'
-import { AddCart } from './add-cart'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { ProductImg } from './product-img'
 
 interface Props {
     className?: string
@@ -17,31 +16,35 @@ interface Products {
     name: string
     price: number
     discount: number
-    size: Array<string>
 }
 
-export const Products: React.FC<Props> = () => {
+export const ProductCatalog: React.FC<Props> = ({ }) => {
     const router = useParams()
-    const productId = router.productId
-    const [trigger, { data, isLoading, isError, isFetching }] = useLazyGetProductsQuery()
+    const catalogId = Number(router.catalogId)
+    const [trigger, { data, isLoading, isError, isFetching }] = useLazyGetProductsCatalogQuery()
     const [allProducts, setAllProducts] = useState<Products[]>([])
     const loaderRef = useRef<HTMLDivElement>(null)
-    // const { data: rating } = useGetRatingQuery(Number(productId))
+
+    useEffect(() => {
+        setAllProducts([])
+    }, [catalogId])
 
     useEffect(() => {
         if (data?.products) {
             setAllProducts(prev => {
-                const newProducts = data.products.filter(
-                    newProduct => !prev.some(product => product.id === newProduct.id)
-                )
+                const catalogProducts = data.products.filter(p => p.catalogId === catalogId)
+                const existingIds = new Set(prev.map(p => p.id))
+                const newProducts = catalogProducts.filter(p => !existingIds.has(p.id))
                 return [...prev, ...newProducts]
             })
         }
-    }, [data])
+    }, [data, catalogId])
 
     useEffect(() => {
-        trigger(0)
-    }, [trigger])
+        if (catalogId) {
+            trigger({ catalogId, offset: 0 }, true)
+        }
+    }, [catalogId, trigger])
 
     useEffect(() => {
         if (!data?.hasMore || isFetching) return
@@ -49,28 +52,29 @@ export const Products: React.FC<Props> = () => {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
-                    trigger(data.nextOffset)
+                    trigger({ catalogId, offset: data.nextOffset })
                 }
             },
             { threshold: 0.1 }
         )
 
-        if (loaderRef.current) observer.observe(loaderRef.current)
+        const currentLoader = loaderRef.current
+        if (currentLoader) observer.observe(currentLoader)
 
-        return () => observer.disconnect()
-    }, [data, isFetching, trigger])
+        return () => {
+            if (currentLoader) observer.unobserve(currentLoader)
+        }
+    }, [catalogId, data, isFetching, trigger])
 
     const productsWithKeys = useMemo(() => {
-        return allProducts.map((product, index) => ({
+        return allProducts.map((product, i) => ({
             ...product,
-            uniqueKey: `${product.id}-${index}`
+            uniqueKey: `${product.id}-${i}`
         }))
     }, [allProducts])
 
-    if (isError) return <div className="text-center py-10">Ошибка загрузки</div>
-    if (isLoading && allProducts.length === 0) return <div className="text-center py-10">Загрузка...</div>
-
-    // const averageRating = rating?.rating.reduce((sum, el) => sum + el.grade, 0) / rating?.rating.length
+    if (isError) return <h1>Ошибка</h1>
+    if (isLoading && allProducts.length === 0) return <h1>Загрузка</h1>
 
     return (
         <div className="grid grid-cols-4 gap-x-5 gap-y-10 my-20">
@@ -97,10 +101,11 @@ export const Products: React.FC<Props> = () => {
                                     })}
                                 </span>
                             )}
-                            {/* {averageRating ? <span>Средний рейтинг: {averageRating.toFixed(1)}</span> : <span>Отзывов пока что нет</span>} */}
                         </div>
                     </Link>
-                    <AddCart isPrice={el.price} isSize={el.size} isId={el.id} />
+                    <button className="w-full bg-[#E5E5E5] rounded-2xl h-[46px] cursor-pointer hover:bg-[#DBDBDB] transition duration-150">
+                        В корзину
+                    </button>
                 </div>
             ))}
 
