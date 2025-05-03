@@ -3,8 +3,8 @@ import foreverController from "../controllers/foreverController.js"
 
 const router = Router()
 
-router.post("/", foreverController.addForever)
+router.post("/:productId", foreverController.addForever)
 router.get("/", foreverController.getForever)
-router.delete("/:id", foreverController.deleteForever)
+router.delete("/:productId", foreverController.deleteForever)
 
 export default router

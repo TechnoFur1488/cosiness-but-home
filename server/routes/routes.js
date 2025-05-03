@@ -14,7 +14,7 @@ const router = Router()
 router.use("/products", productRouter)
 router.use("/catalog", catalogRouter)
 router.use("/rating", ratingMiddleware, ratingRouter)
-router.use("/order", orderRouter)
+router.use("/order", cartMiddleware, orderRouter)
 router.use("/cart", cartMiddleware, cartRouter)
 router.use("/forever", foreverMiddleware, foreverRouter)
 

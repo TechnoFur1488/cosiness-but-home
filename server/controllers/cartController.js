@@ -1,3 +1,4 @@
+import { where } from "sequelize"
 import { CartProduct, Product } from "../model/model.js"
 
 class CartController {
@@ -7,11 +8,11 @@ class CartController {
             const cart = req.cart
 
             const product = await Product.findByPk(productId)
-            
+
             if (!product) {
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
-            
+
             const [w, l] = size.split("x").map(Number)
             const squareMeters = w * l
             const price = product.price * squareMeters
@@ -32,11 +33,11 @@ class CartController {
 
             const cartProducts = await CartProduct.findAll({ where: { cartId: cart.id }, include: [Product], order: [["createdAt", "DESC"]] })
 
-            return res.status(200).json({cartProducts, message: "Товар успешно добавлен в корзину" })
+            return res.status(200).json({ cartProducts, message: "Товар успешно добавлен в корзину" })
 
         } catch (err) {
             console.error(err)
-            return res.status(500).json({ message: "Ошибка сервера" }) 
+            return res.status(500).json({ message: "Ошибка сервера" })
         }
     }
 
@@ -67,7 +68,28 @@ class CartController {
 
             const cartProducts = await CartProduct.findAll({ where: { cartId: cart.id }, include: [Product], order: [["createdAt", "DESC"]] })
 
-            return res.status(200).json({cartProducts, message: "Товар успешно удален из корзины" })
+            return res.status(200).json({ cartProducts, message: "Товар успешно удален из корзины" })
+        } catch (err) {
+            console.error(err)
+            return res.status(500).json({ message: "Ошибка сервера" })
+        }
+    }
+
+    async updateCart(req, res) {
+        try {
+            const { quantity, size } = req.body
+            const { cart } = req
+
+            const product = await Product.findByPk(productId)
+
+            const [w, l] = size.split("x").map(Number)
+            const squareMeters = w * l
+            const price = product.price * squareMeters
+            const total = price * quantity
+
+
+            const cartItem = await CartProduct.update({ where: { cartId: cart.id } })
+
         } catch (err) {
             console.error(err)
             return res.status(500).json({ message: "Ошибка сервера" })

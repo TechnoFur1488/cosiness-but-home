@@ -1,11 +1,12 @@
 "use client"
 
-import { useGetRatingQuery, useLazyGetProductsQuery } from '@/store/apiSlice'
+import { useDeleteForeverMutation, useGetForeverQuery, useGetRatingQuery, useLazyGetProductsQuery, usePostForeverMutation } from '@/store/apiSlice'
 import React, { useEffect, useRef, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { ProductImg } from './product-img'
 import { useParams } from 'next/navigation'
 import { AddCart } from './add-cart'
+import { Heart } from 'lucide-react'
 
 interface Props {
     className?: string
@@ -27,6 +28,9 @@ export const Products: React.FC<Props> = () => {
     const [allProducts, setAllProducts] = useState<Products[]>([])
     const loaderRef = useRef<HTMLDivElement>(null)
     // const { data: rating } = useGetRatingQuery(Number(productId))
+    const [postForever] = usePostForeverMutation()
+    const [deleteForever] = useDeleteForeverMutation()
+    const { data: forever } = useGetForeverQuery()
 
     useEffect(() => {
         if (data?.products) {
@@ -67,19 +71,34 @@ export const Products: React.FC<Props> = () => {
         }))
     }, [allProducts])
 
+    const favorite = useMemo(() => {
+        return new Set(forever?.foreverItem?.map(i => i.product.id) || new Set())
+    }, [forever])
+
+    const handleFavoriteClick = async (productId: number) => {
+        try {
+            if (favorite.has(productId)) {
+                await deleteForever(productId).unwrap()
+            } else {
+                await postForever(productId).unwrap()
+            }
+        } catch (err) {
+            alert(favorite.has(productId) ? "Не смогли удалить из избранного" : "Не смогли добавить в избранное")
+            console.error(err)
+        }
+    }
+
     if (isError) return <div className="text-center py-10">Ошибка загрузки</div>
     if (isLoading && allProducts.length === 0) return <div className="text-center py-10">Загрузка...</div>
 
-    // const averageRating = rating?.rating.reduce((sum, el) => sum + el.grade, 0) / rating?.rating.length
-
     return (
-        <div className="grid grid-cols-4 gap-x-5 gap-y-10 my-20">
+        <div className={"grid grid-cols-4 gap-x-5 gap-y-10 my-20"}>
             {productsWithKeys.map((el) => (
-                <div className="flex flex-col items-start justify-between" key={el.uniqueKey}>
-                    <Link className="h-[550px] flex flex-col justify-between" href={`/product/${el.id}`}>
+                <div className={"flex flex-col items-start justify-between relative"} key={el.uniqueKey}>
+                    <Link className={"h-[550px] flex flex-col justify-between"} href={`/product/${el.id}`}>
                         <ProductImg isImg={el.img} />
-                        <span className="py-[13px]">{el.name}</span>
-                        <div className="py-[9px]">
+                        <span className={"py-[13px]"}>{el.name}</span>
+                        <div className={"py-[9px]"}>
                             <span>
                                 {el.price.toLocaleString("ru-RU", {
                                     style: "currency",
@@ -100,6 +119,13 @@ export const Products: React.FC<Props> = () => {
                             {/* {averageRating ? <span>Средний рейтинг: {averageRating.toFixed(1)}</span> : <span>Отзывов пока что нет</span>} */}
                         </div>
                     </Link>
+                    <button  onClick={() => { handleFavoriteClick(el.id) }} className={"p-2 absolute top-0 right-0 z-30 cursor-pointer"}>
+                        <Heart
+                            fill={favorite.has(el.id) ? 'red' : 'currentColor'}
+                            color={favorite.has(el.id) ? 'red' : 'black'}
+                            className={"text-[#E5E5EA]  "}
+                        />
+                    </button>
                     <AddCart isPrice={el.price} isSize={el.size} isId={el.id} />
                 </div>
             ))}

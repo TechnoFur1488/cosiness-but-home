@@ -57,7 +57,7 @@ export const Header: React.FC<Props> = ({ }) => {
                         <Link href={"/cart"}>
                             <ShoppingCart fill='currentColor' className='text-[#E5E5EA] hover:text-[#DBDBDB] transition-colors' width={37} height={37} />
                         </Link>
-                        <Link href={"/"}>
+                        <Link href={"/forever"}>
                             <Heart fill='currentColor' className='text-[#E5E5EA] hover:text-[#DBDBDB] transition-colors' width={37} height={37} />
                         </Link>
                     </div>

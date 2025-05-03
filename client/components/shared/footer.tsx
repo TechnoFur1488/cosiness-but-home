@@ -67,7 +67,7 @@ export const Footer: React.FC<Props> = ({ }) => {
     }, [initMap])
 
     return (
-        <footer className={"bg-[linear-gradient(to_top,#F8F8F8_80%,#F8F8F8_80%,white_50%,white_50%)]"}>
+        <footer className={"bg-[linear-gradient(to_top,#F8F8F8_80%,#F8F8F8_80%,white_50%,white_50%)] bottom-0 left-0 right-0"}>
             <Container className={'flex justify-between pb-11'}>
                 <div id='map' className={"w-[466px] h-[449px]  bg-white "} />
                 <div className='pt-[124px] font-medium flex flex-col justify-between'>

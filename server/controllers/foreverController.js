@@ -3,7 +3,7 @@ import { ForeverProduct, Product } from "../model/model.js"
 class ForeverController {
     async addForever(req, res) {
         try {
-            const { productId } = req.body
+            const { productId } = req.params
             const forever = req.forever
 
             const product = await Product.findByPk(productId)
@@ -44,14 +44,14 @@ class ForeverController {
 
     async deleteForever(req, res) {
         try {
-            const { id } = req.params
+            const { productId } = req.params
             const { forever } = req
 
-            if (!id) {
+            if (!productId) {
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
-            await ForeverProduct.destroy({ where: { foreverId: forever.id, id } })
+            await ForeverProduct.destroy({ where: { foreverId: forever.id, productId } })
 
             const foreverProducts = await ForeverProduct.findAll({ where: { foreverId: forever.id }, include: [Product], order: [["createdAt", "DESC"]] })
 

@@ -98,7 +98,7 @@ export const AddCart: React.FC<Props> = ({ isPrice, isSize, isId }) => {
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl>
                                                 <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder="Выб" />
+                                                    <SelectValue placeholder="Выбрать размер" />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className='z-[150]'>
@@ -109,6 +109,7 @@ export const AddCart: React.FC<Props> = ({ isPrice, isSize, isId }) => {
                                                 ))}
                                             </SelectContent>
                                         </Select>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -125,6 +126,7 @@ export const AddCart: React.FC<Props> = ({ isPrice, isSize, isId }) => {
                                                 <Button className={"bg-[#E5E5EA] h-5  text-black cursor-pointer hover:bg-[#DBDBDB] transition duration-150"} type="button" onClick={() => field.onChange(Math.max(1, field.value + 1))}><Plus width={25} height={25} /></Button>
                                             </div>
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />

@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
+import { url } from "inspector"
 
 interface Products {
     id: number
@@ -50,6 +51,16 @@ interface Order {
     policy: boolean
 }
 
+interface OrderCart {
+    mail: string
+    name: string
+    adress: string
+    phone: string
+    delivery: string
+    pay: string
+    policy: boolean
+}
+
 interface Catalog {
     id: number
     name: string
@@ -61,6 +72,38 @@ interface PostCart {
     productId: number
 }
 
+interface Cart {
+    id: number
+    size: Array<string>
+    quantity: number
+    total: number
+    product: {
+        name: string
+        img: Array<string>
+    }
+}
+
+interface PostForever {
+    productId: number
+}
+
+interface Forever {
+    id: number
+    product: {
+        id: number
+        img: Array<string>
+        name: string
+        price: number
+        discount: number
+        compound: string
+        warp: string
+        hight: number
+        hardness: number
+        size: Array<string>
+        description: string
+        catalogId: number
+    }
+}
 
 export const apiSlice = createApi({
     reducerPath: "api",
@@ -74,7 +117,7 @@ export const apiSlice = createApi({
             return headers
         }
     }),
-    tagTypes: ["Product", "Rating", "Order", "Catalog", "Cart"],
+    tagTypes: ["Product", "Rating", "Order", "Catalog", "Cart", "Forever"],
     endpoints: (builder) => ({
 
 
@@ -153,6 +196,15 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ["Order"]
         }),
+        postOrder: builder.mutation<OrderCart, { newOrder: OrderCart }>({
+            query: ({ newOrder }) => ({
+                url: "/api/order/",
+                method: "POST",
+                body: newOrder,
+                credentials: "include"
+            }),
+            invalidatesTags: ["Order"]
+        }),
 
 
         postCart: builder.mutation<PostCart, { newCart: PostCart }>({
@@ -164,13 +216,46 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ["Cart"]
         }),
-        // getCart: builder.query<Cart, number | void>({
-        //     query: () => ({
-        //         url: "/api/cart",
-        //         credentials: "include"
-        //     }),
-        //     providesTags: ["Cart"],
-        // })
+        getCart: builder.query<{ cartItem: Cart[] }, void>({
+            query: () => ({
+                url: "/api/cart",
+                credentials: "include"
+            }),
+            providesTags: ["Cart"],
+        }),
+        deleteCart: builder.mutation<void, number>({
+            query: (id) => ({
+                url: `/api/cart/${id}`,
+                method: "DELETE",
+                credentials: "include"
+            }),
+            invalidatesTags: ["Cart"]
+        }),
+
+
+        postForever: builder.mutation<PostForever, number>({
+            query: (productId) => ({
+                url: `/api/forever/${productId}`,
+                method: "POST",
+                credentials: "include"
+            }),
+            invalidatesTags: ["Forever"]
+        }),
+        getForever: builder.query<{ foreverItem: Forever[] }, void>({
+            query: () => ({
+                url: "/api/forever",
+                credentials: "include"
+            }),
+            providesTags: ["Forever"]
+        }),
+        deleteForever: builder.mutation<void, number>({
+            query: (productId) => ({
+                url: `/api/forever/${productId}`,
+                method: "DELETE",
+                credentials: "include"
+            }),
+            invalidatesTags: ["Forever"]
+        })
     })
 })
 
@@ -185,10 +270,16 @@ export const {
     useUpdateRatingMutation,
 
     usePostOrderOneMutation,
+    usePostOrderMutation,
 
     useGetCatalogQuery,
     useLazyGetProductsCatalogQuery,
 
     usePostCartMutation,
-    // useGetCartQuery,
+    useGetCartQuery,
+    useDeleteCartMutation,
+
+    usePostForeverMutation,
+    useGetForeverQuery,
+    useDeleteForeverMutation,
 } = apiSlice
