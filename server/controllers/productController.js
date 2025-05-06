@@ -22,6 +22,11 @@ class ProductController {
         try {
             const { name, price, discount, compound, warp, hight, hardness, size, description, from, catalogId } = req.body
             const files = req.files
+            const userId = req.user.id
+
+            if (req.user.role !== "ADMIN") {
+                return res.status(403).json({message: "Доступа запрещен"})
+            }
 
             if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description || !catalogId) {
 
@@ -82,7 +87,7 @@ class ProductController {
                 return { size, total, squareMeters }
             })
 
-            const product = await Product.create({ img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizes.map(s => s.size), description, from, catalogId })
+            const product = await Product.create({ userId, img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizes.map(s => s.size), description, from, catalogId })
 
             files.forEach(file => {
                 fs.unlinkSync(file.path)

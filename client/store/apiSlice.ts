@@ -105,6 +105,14 @@ interface Forever {
     }
 }
 
+interface Auth {
+    id: number
+    name: string
+    email: string
+    password: string
+    token: string
+}
+
 export const apiSlice = createApi({
     reducerPath: "api",
     baseQuery: fetchBaseQuery({
@@ -117,7 +125,7 @@ export const apiSlice = createApi({
             return headers
         }
     }),
-    tagTypes: ["Product", "Rating", "Order", "Catalog", "Cart", "Forever"],
+    tagTypes: ["Product", "Rating", "Order", "Catalog", "Cart", "Forever", "User"],
     endpoints: (builder) => ({
 
 
@@ -132,6 +140,16 @@ export const apiSlice = createApi({
             },
             forceRefetch: ({ currentArg, previousArg }) => currentArg !== previousArg
         }),
+        login: builder.mutation<Auth, Auth>({
+            query: (user) => ({
+                url: "/api/user/login",
+                method: "POST",
+                body: user
+            }),
+            invalidatesTags: ["User"]
+        }),
+
+
         getOneProducts: builder.query<{ product: Products }, number | void>({
             query: (id) => `/api/products/${id}`,
             providesTags: ["Product"]
