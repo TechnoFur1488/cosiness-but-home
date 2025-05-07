@@ -25,7 +25,12 @@ class ProductController {
             const userId = req.user.id
 
             if (req.user.role !== "ADMIN") {
-                return res.status(403).json({message: "Доступа запрещен"})
+
+                files.forEach(file => {
+                    fs.unlinkSync(file.path)
+                })
+
+                return res.status(403).json({ message: "Доступа запрещен" })
             }
 
             if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description || !catalogId) {
@@ -80,7 +85,7 @@ class ProductController {
             const sizeArray = typeof size === "string" ? size.split(" ") : Array.isArray(size) ? size : []
 
             const sizes = sizeArray.map(size => {
-                const [w, l] = size.split("x").map(Number)
+                const [w, l] = size.split("x").map(Number) 
                 const squareMeters = w * l
                 const total = Math.round(price * squareMeters)
 
@@ -144,6 +149,17 @@ class ProductController {
         try {
             const { id } = req.params
             const files = req.files
+            const userId = req.user.id
+
+            if (req.user.role !== "ADMIN") {
+
+                files.forEach(file => {
+                    fs.unlinkSync(file.path)
+                })
+
+                return res.status(403).json({ message: "Доступа запрещен" })
+            }
+
 
             if (!id) {
 
@@ -187,7 +203,7 @@ class ProductController {
                 fs.unlinkSync(file.path)
             })
 
-            await product.destroy()
+            await product.destroy({ userId })
 
             return res.status(200).json({ message: "Товар успешно удален" })
         } catch (err) {
@@ -206,6 +222,15 @@ class ProductController {
             const { id } = req.params
             const { name, price, discount, compound, warp, hight, hardness, size, description, from, catalogId } = req.body
             const files = req.files
+            const userId = req.user.id
+
+            if (req.user.role !== "ADMIN") {
+                files.forEach(file => {
+                    fs.unlinkSync(file.path)
+                })
+
+                return res.status(403).json({ message: "Доступа запрещен" })
+            }
 
             if (!id) {
 
@@ -259,7 +284,7 @@ class ProductController {
             }))
 
             const imageUrls = await Promise.all(files.map(async (file) => {
-                const response = drive.files.create({
+                const response = await drive.files.create({
                     requestBody: {
                         name: file.originalname || path.basename(file.path),
                         mimeType: file.mimetype,
@@ -283,7 +308,7 @@ class ProductController {
 
             const sizeArray = typeof size === "string" ? size.split(" ") : Array.isArray(size) ? size : []
 
-            product = await Product.update({ img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizeArray, description, from, catalogId }, { where: { id } })
+            product = await Product.update({ userId, img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizeArray, description, from, catalogId }, { where: { id } })
 
             files.forEach(file => {
                 fs.unlinkSync(file.path)
