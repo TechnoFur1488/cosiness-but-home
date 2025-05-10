@@ -28,7 +28,7 @@ export const ProductOptionImg: React.FC<Props> = ({ isImg }) => {
                     return (
                         <SwiperSlide className="!h-full" key={i}>
                             <div className="relative w-full h-full">
-                                <button className='cursor-pointer' onClick={e => setBigImg(true)}>
+                                <button className='cursor-pointer' onClick={() => setBigImg(true)}>
                                     <Image className={"rounded-2xl object-cover"} fill src={el} alt='Картинка' sizes="(max-width: 768px) 100vw, 800px" />
                                 </button>
                             </div>

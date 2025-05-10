@@ -34,8 +34,8 @@ class UserController {
 
     async login(req, res) {
         try {
-            const { name, email, password } = req.body
-            const user = await User.findOne({ where: { email, name } })
+            const { email, password } = req.body
+            const user = await User.findOne({ where: { email } })
 
             if (!user) {
                 return res.status(400).json({ message: "Пользователь не найден" })
@@ -48,10 +48,10 @@ class UserController {
             }
 
             const token = generateJwt(user.id, user.email, user.role)
-            return res.json({ token, user: {id: user.id, name: user.name, email: user.email, role: user.role} })
+            return res.json({ token, user: { id: user.id, email: user.email, role: user.role } })
         } catch (err) {
             console.error(err)
-            return res.status(500).json({message: "Ошибка сервера"})
+            return res.status(500).json({ message: "Ошибка сервера" })
         }
     }
 }

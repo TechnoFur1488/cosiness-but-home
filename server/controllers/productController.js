@@ -85,7 +85,7 @@ class ProductController {
             const sizeArray = typeof size === "string" ? size.split(" ") : Array.isArray(size) ? size : []
 
             const sizes = sizeArray.map(size => {
-                const [w, l] = size.split("x").map(Number) 
+                const [w, l] = size.split("x").map(Number)
                 const squareMeters = w * l
                 const total = Math.round(price * squareMeters)
 

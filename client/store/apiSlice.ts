@@ -1,5 +1,4 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
-import { url } from "inspector"
 
 interface Products {
     id: number
@@ -106,7 +105,6 @@ interface Forever {
 }
 
 interface Auth {
-    id: number
     name: string
     email: string
     password: string
@@ -140,7 +138,16 @@ export const apiSlice = createApi({
             },
             forceRefetch: ({ currentArg, previousArg }) => currentArg !== previousArg
         }),
-        login: builder.mutation<Auth, Auth>({
+
+        registration: builder.mutation<Auth, Partial<Auth>>({
+            query: (user) => ({
+                url: "/api/user/registration",
+                method: "POST",
+                body: user
+            }),
+            invalidatesTags: ["User"]
+        }),
+        login: builder.mutation<Auth, Partial<Auth>>({
             query: (user) => ({
                 url: "/api/user/login",
                 method: "POST",
@@ -281,6 +288,9 @@ export const {
 
     useLazyGetProductsQuery,
     useGetOneProductsQuery,
+
+    useLoginMutation,
+    useRegistrationMutation,
 
     usePostRatingMutation,
     useGetRatingQuery,
