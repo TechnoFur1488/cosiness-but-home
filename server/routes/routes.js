@@ -20,4 +20,4 @@ router.use("/cart", cartMiddleware, cartRouter)
 router.use("/forever", foreverMiddleware, foreverRouter)
 router.use("/user", userRouter)
 
-export default router 
+export default router

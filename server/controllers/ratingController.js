@@ -20,12 +20,12 @@ const drive = google.drive({ version: "v3", auth })
 class RatingController {
     async createRating(req, res) {
 
-        const files = req.files || [];
-
+        
         try {
             const { productId } = req.params
             const { name, grade, gradeText } = req.body;
             const sessionId = req.sessionId;
+            const files = req.files || []
 
             // if (gradeText.length > 1000) {
             //     return res.status(400).json({ message: "Описание не может привышать больше 1000 символов" })

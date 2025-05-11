@@ -7,6 +7,7 @@ import { ProductImg } from './product-img'
 import { useParams } from 'next/navigation'
 import { AddCart } from './add-cart'
 import { Heart } from 'lucide-react'
+import { DeleteProductBtn } from './delete-product-btn'
 
 interface Props {
     className?: string
@@ -126,6 +127,7 @@ export const Products: React.FC<Props> = () => {
                             className={"text-[#E5E5EA]  "}
                         />
                     </button>
+                    <DeleteProductBtn isId={el.id} />
                     <AddCart isPrice={el.price} isSize={el.size} isId={el.id} />
                 </div>
             ))}

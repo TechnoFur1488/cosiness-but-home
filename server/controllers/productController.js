@@ -4,6 +4,7 @@ import { google } from "googleapis"
 import fs from "fs"
 import { fileURLToPath } from "url"
 import dotenv from "dotenv"
+import { deleteDriveFiles, deleteLocalFiles } from "../services/googleDriveServices.js"
 
 dotenv.config()
 
@@ -128,6 +129,7 @@ class ProductController {
         }
     }
 
+
     async getOneProducts(req, res) {
         try {
             const { id } = req.params
@@ -148,60 +150,30 @@ class ProductController {
     async deleteProduct(req, res) {
         try {
             const { id } = req.params
-            const files = req.files
+            const files = req.files || []
             const userId = req.user.id
 
             if (req.user.role !== "ADMIN") {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(403).json({ message: "Доступа запрещен" })
             }
 
-
             if (!id) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
             const product = await Product.findByPk(id)
 
             if (!product) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
-            const imgUrls = product.img
-
-            await Promise.all(imgUrls.map(async (url) => {
-                try {
-                    const fileId = url.match(/id=([^&]+)/)[1]
-
-                    await drive.files.delete({
-                        fileId: fileId
-                    })
-                } catch (err) {
-                    console.error(err)
-
-                    files.forEach(file => {
-                        fs.unlinkSync(file.path)
-                    })
-                }
-            }))
-
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
+            await Promise.all([
+                deleteDriveFiles(product.img || []),
+                deleteLocalFiles(files)
+            ])
 
             await product.destroy({ userId })
 
@@ -209,9 +181,11 @@ class ProductController {
         } catch (err) {
             console.error(err)
 
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
+            try {
+                await deleteLocalFiles(req.files || [])
+            } catch (fileErr) {
+                console.error("Ошибка упри удалении временных файлов", fileErr)
+            }
 
             return res.status(500).json({ message: "Ошибка сервера" })
         }

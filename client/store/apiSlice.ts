@@ -138,6 +138,13 @@ export const apiSlice = createApi({
             },
             forceRefetch: ({ currentArg, previousArg }) => currentArg !== previousArg
         }),
+        deleteProduct: builder.mutation<void, number>({
+            query: (id) => ({
+                url: `/api/products/${id}`,
+                method: "DELETE"
+            }),
+            invalidatesTags: ["Product"]
+        }),
 
         registration: builder.mutation<Auth, Partial<Auth>>({
             query: (user) => ({
@@ -285,9 +292,9 @@ export const apiSlice = createApi({
 })
 
 export const {
-
     useLazyGetProductsQuery,
     useGetOneProductsQuery,
+    useDeleteProductMutation,
 
     useLoginMutation,
     useRegistrationMutation,
