@@ -126,7 +126,14 @@ export const apiSlice = createApi({
     tagTypes: ["Product", "Rating", "Order", "Catalog", "Cart", "Forever", "User"],
     endpoints: (builder) => ({
 
-
+        createProduct: builder.mutation<Products, FormData>({
+            query: (newProduct) => ({
+                url: "/api/products/",
+                method: "POST",
+                body: newProduct
+            }),
+            invalidatesTags: ["Product"]
+        }),
         getProducts: builder.query<ProductsResponse, number | void>({
             query: (offset = 0) => `/api/products?offset=${offset}`,
             providesTags: ["Product"],
@@ -292,6 +299,7 @@ export const apiSlice = createApi({
 })
 
 export const {
+    useCreateProductMutation,
     useLazyGetProductsQuery,
     useGetOneProductsQuery,
     useDeleteProductMutation,

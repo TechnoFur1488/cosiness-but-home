@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import NotFound from '@/app/not-found'
+import CreateProduct from './create-product'
 
 interface Props {
     className?: string
@@ -34,6 +35,7 @@ export const AdminPanel: React.FC<Props> = ({ className }) => {
                 ? <div>
                     <span>Hello </span>
                     {role}
+                    <CreateProduct />
                 </div>
                 : <NotFound />
             }
