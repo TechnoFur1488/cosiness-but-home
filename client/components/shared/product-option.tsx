@@ -2,8 +2,9 @@
 
 import { useGetOneProductsQuery } from '@/store/apiSlice'
 import { useParams } from 'next/navigation'
-import React from 'react'
+import React, { useState } from 'react'
 import { ProductOptionImg, ProductInformation, ProductBuy } from './index'
+import { UpdateProduct } from './update-product'
 
 
 
@@ -11,21 +12,8 @@ interface Props {
     className?: string
 }
 
-interface Products {
-    id: number
-    img: Array<string>
-    name: string
-    price: number
-    discount: number
-    compound: string
-    warp: string
-    hight: number
-    hardness: number
-    size: Array<string>
-    description: string
-}
-
 export const ProductOption: React.FC<Props> = ({ }) => {
+    const [edit, setEdit] = useState(false)
     const router = useParams()
     const productId = router.productId
 
@@ -38,7 +26,7 @@ export const ProductOption: React.FC<Props> = ({ }) => {
     const product = data.product
 
     return (
-        <div className={"flex justify-between"}>
+        <div className={"flex justify-between relative"}>
             <ProductOptionImg isImg={product.img} />
             <ProductInformation
                 isName={product.name}
@@ -49,7 +37,8 @@ export const ProductOption: React.FC<Props> = ({ }) => {
                 isSize={product.size}
                 isDescription={product.description}
             />
-            <ProductBuy isSize={product.size} isPrice={product.price} isDiscount={product.discount} />
+            <ProductBuy isEdit={edit} isSize={product.size} isPrice={product.price} isDiscount={product.discount} />
+            <UpdateProduct isSetEdit={setEdit} isEdit={edit} />
         </div>
     )
 }

@@ -39,6 +39,7 @@ interface ProductsResponse {
 }
 
 interface Order {
+    id: number
     mail: string
     name: string
     adress: string
@@ -48,16 +49,18 @@ interface Order {
     size: string
     quantity: number
     policy: boolean
-}
-
-interface OrderCart {
-    mail: string
-    name: string
-    adress: string
-    phone: string
-    delivery: string
-    pay: string
-    policy: boolean
+    total: number
+    createdAt: string
+    order_items: [
+        {
+            id: number
+            quantity: number
+            price: number
+            productName: string
+            size: string
+            productId: number
+        }
+    ]
 }
 
 interface Catalog {
@@ -127,10 +130,10 @@ export const apiSlice = createApi({
     endpoints: (builder) => ({
 
         createProduct: builder.mutation<Products, FormData>({
-            query: (newProduct) => ({
+            query: (formData) => ({
                 url: "/api/products/",
                 method: "POST",
-                body: newProduct
+                body: formData
             }),
             invalidatesTags: ["Product"]
         }),
@@ -235,7 +238,7 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ["Order"]
         }),
-        postOrder: builder.mutation<OrderCart, { newOrder: OrderCart }>({
+        postOrder: builder.mutation<Order, { newOrder: Partial<Order> }>({
             query: ({ newOrder }) => ({
                 url: "/api/order/",
                 method: "POST",
@@ -243,6 +246,10 @@ export const apiSlice = createApi({
                 credentials: "include"
             }),
             invalidatesTags: ["Order"]
+        }),
+        getOrder: builder.query<{ allOrderItems: { rows: Order[] } }, void>({
+            query: () => "/api/order",
+            providesTags: ["Order"]
         }),
 
 
@@ -314,6 +321,7 @@ export const {
 
     usePostOrderOneMutation,
     usePostOrderMutation,
+    useGetOrderQuery,
 
     useGetCatalogQuery,
     useLazyGetProductsCatalogQuery,

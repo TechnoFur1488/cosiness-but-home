@@ -1,19 +1,18 @@
-"use client"
+import { Pencil } from "lucide-react"
+import React, { useEffect, useState } from "react"
 
-import React, { useEffect, useState } from 'react'
-import NotFound from '@/app/not-found'
-import { CreateProduct } from './create-product'
-import { LastOrder } from './last-order'
+interface Props {
+    isEdit: boolean
+    isSetEdit: React.Dispatch<React.SetStateAction<boolean>>
+}
 
-
-export const AdminPanel= () => {
+export const UpdateProduct = ({ isEdit, isSetEdit }: Props) => {
     const [role, setRole] = useState<string | null>(null)
 
     useEffect(() => {
         const token = localStorage.getItem("token")
 
         if (token) {
-
             try {
                 const tokenParts = token.split(".")
                 const decodedPayload = JSON.parse(atob(tokenParts[1]).replace(/-/g, "+").replace(/_/g, "/"))
@@ -23,21 +22,19 @@ export const AdminPanel= () => {
             } catch (err) {
                 console.error('Ошибка декодирования токена:', err)
             }
-
         }
     }, [])
 
     return (
-        <div>
-            {role === "ADMIN"
-                ? <div className={"flex justify-between"}>
-                    {/* <span>Hello </span>
-                    {role} */}
-                    <CreateProduct />
-                    <LastOrder />
+        <>
+            {role === "ADMIN" ?
+                <div className={"absolute left-4 top-4 z-60"}>
+                    <button onClick={() => isSetEdit(!isEdit)}>
+                        <Pencil fill="#E5E5EA" color="black" className={"cursor-pointer"} />
+                    </button>
                 </div>
-                : <NotFound />
+                : null
             }
-        </div>
+        </>
     )
 }

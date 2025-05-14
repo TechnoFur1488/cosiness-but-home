@@ -230,7 +230,7 @@ class OrderController {
             const { mail, name, adress, phone, delivery, pay, size, quantity, policy } = req.body
             const { productId } = req.params
 
-            if(!policy) {
+            if (!policy) {
                 return res.status(400).json({ message: "Вы не согласились с политикой конфиденциальности" })
             }
 
@@ -420,6 +420,26 @@ class OrderController {
             })
 
             return res.status(200).json({ orderItem, message: "Заказ успешно создан" })
+        } catch (err) {
+            console.error(err)
+            return res.status(500).json({ message: "Ошибка сервера" })
+        }
+    }
+
+    async getAllOrder(req, res) {
+
+        try {
+            const allOrderItems = await Order.findAndCountAll({
+                limit: 10,
+                order: [["createdAt", "DESC"]],
+                include: [
+                    {
+                        model: OrderItem
+                    }
+                ]
+            })
+
+            return res.status(200).json({ allOrderItems })
         } catch (err) {
             console.error(err)
             return res.status(500).json({ message: "Ошибка сервера" })

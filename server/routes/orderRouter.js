@@ -5,5 +5,6 @@ const router = Router()
 
 router.post("/", orderController.createOrder)
 router.post("/:productId", orderController.createOrderOne)
+router.get("/", orderController.getAllOrder)
 
 export default router

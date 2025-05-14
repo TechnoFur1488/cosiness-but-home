@@ -1,93 +1,50 @@
 import { Product } from "../model/model.js"
-import path, { dirname, join } from "path"
-import { google } from "googleapis"
-import fs from "fs"
-import { fileURLToPath } from "url"
-import dotenv from "dotenv"
-import { deleteDriveFiles, deleteLocalFiles } from "../services/googleDriveServices.js"
-
-dotenv.config()
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const auth = new google.auth.GoogleAuth({
-    keyFile: join(__dirname, "..", "google-credentials.json"),
-    scopes: ["https://www.googleapis.com/auth/drive"]
-})
-
-const drive = google.drive({ version: "v3", auth, timeout: 10000 })
+import { deleteDriveFiles, deleteLocalFiles, postDriveFiles } from "../services/googleDriveServices.js"
 
 class ProductController {
     async createProduct(req, res) {
+
+        const { name, price, discount, compound, warp, hight, hardness, size, description, from, catalogId } = req.body
+        const files = req.files
+        const userId = req.user.id
+
+        if (req.user.role !== "ADMIN") {
+            await deleteLocalFiles(files)
+
+            return res.status(403).json({ message: "Доступа запрещен" })
+
+        }
+
         try {
-            const { name, price, discount, compound, warp, hight, hardness, size, description, from, catalogId } = req.body
-            const files = req.files
-            const userId = req.user.id
-
-            if (req.user.role !== "ADMIN") {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
-                return res.status(403).json({ message: "Доступа запрещен" })
-            }
 
             if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description || !catalogId) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
+                await deleteLocalFiles(files)
 
                 return res.status(400).json({ message: "Не все поля заполнены" })
-
             }
 
             if (description.trim().length < 100) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
+                await deleteLocalFiles(files)
 
                 return res.status(406).json({ message: "Описание не может быть меньше чем 100 симолов" })
-
             }
 
-            if (!files) {
+            if (files.length === 0) {
+                await deleteLocalFiles(files)
 
                 return res.status(406).json({ message: "Не все поля заполнены" })
-
             }
 
-            const imageUrls = await Promise.all(files.map(async (file) => {
-                const response = await drive.files.create({
-                    requestBody: {
-                        name: file.originalname || path.basename(file.path),
-                        mimeType: file.mimetype,
-                        parents: [process.env.GOOGLE_DRIVE_PRODUCT_PHOTO]
-                    },
-                    media: {
-                        mimeType: file.mimetype,
-                        body: fs.createReadStream(file.path)
-                    }
-                })
-                drive.permissions.create({
-                    fileId: response.data.id,
-                    requestBody: {
-                        role: "reader",
-                        type: "anyone"
-                    }
-                })
+            const imageUrls = await postDriveFiles(files)
 
-                return `https://drive.google.com/uc?export=view&id=${response.data.id}`
-            }))
 
             const sizeArray = typeof size === "string" ? size.split(" ") : Array.isArray(size) ? size : []
 
             const sizes = sizeArray.map(size => {
                 const [w, l] = size.split("x").map(Number)
+
                 const squareMeters = w * l
+
                 const total = Math.round(price * squareMeters)
 
                 return { size, total, squareMeters }
@@ -95,18 +52,12 @@ class ProductController {
 
             const product = await Product.create({ userId, img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizes.map(s => s.size), description, from, catalogId })
 
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
+            deleteLocalFiles(files)
 
             return res.status(201).json({ product, message: "Товар успешно создан" })
         } catch (err) {
             console.error(err)
-
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
-
+            await deleteLocalFiles(files)
             return res.status(500).json({ message: "Ошибка сервера" })
         }
     }
@@ -131,8 +82,10 @@ class ProductController {
 
 
     async getOneProducts(req, res) {
+
+        const { id } = req.params
+        
         try {
-            const { id } = req.params
 
             if (!id) {
                 return res.status(404).json({ message: "Такого товара не существует" })
@@ -148,15 +101,17 @@ class ProductController {
     }
 
     async deleteProduct(req, res) {
-        try {
-            const { id } = req.params
-            const files = req.files || []
-            const userId = req.user.id
 
-            if (req.user.role !== "ADMIN") {
-                await deleteLocalFiles(files)
-                return res.status(403).json({ message: "Доступа запрещен" })
-            }
+        const { id } = req.params
+        const files = req.files || []
+        const userId = req.user.id
+
+        if (req.user.role !== "ADMIN") {
+            await deleteLocalFiles(files)
+            return res.status(403).json({ message: "Доступа запрещен" })
+        }
+
+        try {
 
             if (!id) {
                 await deleteLocalFiles(files)
@@ -192,114 +147,71 @@ class ProductController {
     }
 
     async updateProduct(req, res) {
+
+        const { id } = req.params
+        const { name, price, discount, compound, warp, hight, hardness, size, description, from, catalogId } = req.body
+        const files = req.files
+        const userId = req.user.id
+
+        if (req.user.role !== "ADMIN") {
+            await deleteLocalFiles(files)
+            return res.status(403).json({ message: "Доступа запрещен" })
+        }
+
         try {
-            const { id } = req.params
-            const { name, price, discount, compound, warp, hight, hardness, size, description, from, catalogId } = req.body
-            const files = req.files
-            const userId = req.user.id
-
-            if (req.user.role !== "ADMIN") {
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
-                return res.status(403).json({ message: "Доступа запрещен" })
-            }
+            let product = await Product.findByPk(id)
 
             if (!id) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteDriveFiles(files)
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
-            let product = await Product.findByPk(id)
-
             if (!files || files.length === 0) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
 
             if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description || !catalogId) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
 
             if (description.trim().length < 100) {
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
+                await deleteLocalFiles(files)
                 return res.status(406).json({ message: "Описание не может быть меньше чем 100 симолов" })
             }
 
-            await Promise.all(product.img.map(async (url) => {
+            let imageUrls = product.img || []
+
+            if (files?.length > 0) {
                 try {
-                    const fileId = url.match(/id=([^&]+)/)[1]
-                    await drive.files.delete({
-                        fileId: fileId
-                    })
+
+                    if (product.img?.length > 0) {
+                        await deleteDriveFiles(product.img)
+                    }
+
+                    imageUrls = await postDriveFiles(files)
 
                 } catch (err) {
-                    console.error(err)
-                    files.forEach(file => {
-                        fs.unlinkSync(file.path)
-                    })
+                    console.error("Ошибка загрузки файлов:", err);
+                    await deleteLocalFiles(files);
+                    return res.status(500).json({ message: "Ошибка при обновлении изображений" })
                 }
-            }))
-
-            const imageUrls = await Promise.all(files.map(async (file) => {
-                const response = await drive.files.create({
-                    requestBody: {
-                        name: file.originalname || path.basename(file.path),
-                        mimeType: file.mimetype,
-                        parents: [process.env.GOOGLE_DRIVE_PRODUCT_PHOTO]
-                    },
-                    media: {
-                        mimeType: file.mimetype,
-                        body: fs.createReadStream(file.path)
-                    }
-                })
-                drive.permissions.create({
-                    fileId: response.data.id,
-                    requestBody: {
-                        role: "reader",
-                        type: "anyone"
-                    }
-                })
-
-                return `https://drive.google.com/uc?export=view&id=${response.data.id}`
-            }))
+            }
 
             const sizeArray = typeof size === "string" ? size.split(" ") : Array.isArray(size) ? size : []
 
             product = await Product.update({ userId, img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizeArray, description, from, catalogId }, { where: { id } })
 
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
+            await deleteLocalFiles(files)
 
             const productUpdate = await Product.findOne({ where: { id } })
 
             return res.status(200).json({ productUpdate, message: "Товар успешно обновлен" })
 
-
         } catch (err) {
             console.error(err)
-
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
-
+            await deleteLocalFiles(files)
             return res.status(500).json({ message: "Ошибка сервера" })
         }
     }
