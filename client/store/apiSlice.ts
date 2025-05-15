@@ -12,6 +12,7 @@ interface Products {
     hardness: number
     size: Array<string>
     description: string
+    from: string
     catalogId: number
 }
 
@@ -148,6 +149,14 @@ export const apiSlice = createApi({
             },
             forceRefetch: ({ currentArg, previousArg }) => currentArg !== previousArg
         }),
+        updateProduct: builder.mutation<Products, FormData>({
+            query: (formData) => ({
+                url: `/api/products/${formData.get("id")}`,
+                method: "PUT",
+                body: formData
+            }),
+            invalidatesTags: ["Product"]
+        }),
         deleteProduct: builder.mutation<void, number>({
             query: (id) => ({
                 url: `/api/products/${id}`,
@@ -230,7 +239,7 @@ export const apiSlice = createApi({
         }),
 
 
-        postOrderOne: builder.mutation<Order, { productId: number, newOrder: Order }>({
+        postOrderOne: builder.mutation<Order, { productId: number, newOrder: Partial<Order> }>({
             query: ({ productId, newOrder }) => ({
                 url: `/api/order/${productId}`,
                 method: "POST",
@@ -310,6 +319,7 @@ export const {
     useLazyGetProductsQuery,
     useGetOneProductsQuery,
     useDeleteProductMutation,
+    useUpdateProductMutation,
 
     useLoginMutation,
     useRegistrationMutation,

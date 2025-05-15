@@ -6,18 +6,25 @@ import React, { useState } from 'react'
 import { ProductOptionImg, ProductInformation, ProductBuy } from './index'
 import { UpdateProduct } from './update-product'
 
-
-
-interface Props {
-    className?: string
-}
-
-export const ProductOption: React.FC<Props> = ({ }) => {
-    const [edit, setEdit] = useState(false)
+export const ProductOption = () => {
     const router = useParams()
     const productId = router.productId
 
     const { data, isLoading, isError } = useGetOneProductsQuery(Number(productId))
+
+    const [edit, setEdit] = useState(false)
+    const [name, setName] = useState("")
+    const [compound, setCompound] = useState("")
+    const [warp, setWarp] = useState("")
+    const [hight, setHight] = useState(0)
+    const [hardness, setHardness] = useState<number>(0)
+    const [size, setSize] = useState("")
+    const [description, setDescription] = useState("")
+    const [price, setPrice] = useState(0)
+    const [discount, setDiscount] = useState(0)
+    const [from, setFrom] = useState("")
+    const [image, setImage] = useState<File[]>([])
+
 
     if (isLoading) return <div>Loading...</div>
     if (isError) return <div>Error</div>
@@ -25,9 +32,51 @@ export const ProductOption: React.FC<Props> = ({ }) => {
 
     const product = data.product
 
+    let sizes = product.size.join(" ")
+
+    const handlEdit = () => {
+        setName(product.name)
+        setCompound(product.compound)
+        setWarp(product.warp)
+        setHight(product.hight)
+        setHardness(product.hardness)
+        setSize(sizes)
+        setDescription(product.description)
+        setFrom(product.from)
+
+        setPrice(product.price)
+        setDiscount(product.discount)
+
+        setEdit(true)
+    }
+
     return (
         <div className={"flex justify-between relative"}>
-            <ProductOptionImg isImg={product.img} />
+            <div>
+                <UpdateProduct
+                    isSetEdit={setEdit}
+                    isEdit={edit}
+                    isEditFunction={handlEdit}
+                    isName={name}
+                    isCompound={compound}
+                    isWarp={warp}
+                    isHight={hight}
+                    isHardness={hardness}
+                    isSize={size}
+                    isDescription={description}
+                    isPrice={price}
+                    isDiscount={discount}
+                    isImage={image}
+                    isIdProduct={productId}
+                    isFrom={from}
+                />
+                <ProductOptionImg
+                    isImg={product.img || []}
+                    isEdit={edit}
+                    editImage={image}
+                    setEditImage={setImage}
+                />
+            </div>
             <ProductInformation
                 isName={product.name}
                 isCompound={product.compound}
@@ -36,9 +85,46 @@ export const ProductOption: React.FC<Props> = ({ }) => {
                 isHardness={product.hardness}
                 isSize={product.size}
                 isDescription={product.description}
+                isFrom={product.from}
+
+                isEdit={edit}
+
+                editName={name}
+                setEditName={setName}
+
+                editCompound={compound}
+                setEditCompound={setCompound}
+
+                editWarp={warp}
+                setEditWarp={setWarp}
+
+                editHight={hight}
+                setEditHight={setHight}
+
+                editHardness={hardness}
+                setEditHardness={setHardness}
+
+                editSize={size}
+                setEditSize={setSize}
+
+                editDescription={description}
+                setEditDescription={setDescription}
+
+                editFrom={from}
+                setEditFrom={setFrom}
             />
-            <ProductBuy isEdit={edit} isSize={product.size} isPrice={product.price} isDiscount={product.discount} />
-            <UpdateProduct isSetEdit={setEdit} isEdit={edit} />
+            <ProductBuy
+                isEdit={edit}
+                isSize={product.size}
+                isPrice={product.price}
+                isDiscount={product.discount}
+
+                editPrice={price}
+                setEditPrice={setPrice}
+
+                editDiscount={discount}
+                setEditDiscount={setDiscount}
+            />
         </div>
     )
 }

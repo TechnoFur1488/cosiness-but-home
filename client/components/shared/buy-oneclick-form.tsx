@@ -37,12 +37,11 @@ import { Checkbox } from '../ui/checkbox'
 import Link from 'next/link'
 
 interface Props {
-    className?: string
     isSize: Array<string>
     isPrice: number
 }
 
-export const BuyOneclickForm: React.FC<Props> = ({ isSize, isPrice }) => {
+export const BuyOneclickForm = ({ isSize, isPrice }: Props) => {
     const router = useParams()
     const productId = Number(router.productId)
     const [postData] = usePostOrderOneMutation()

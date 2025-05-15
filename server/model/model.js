@@ -5,25 +5,25 @@ const User = sequelize.define("user", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: DataTypes.STRING, allowNull: false },
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: {type: DataTypes.STRING, allowNull: false},
+    password: { type: DataTypes.STRING, allowNull: false },
     role: { type: DataTypes.STRING, allowNull: false, defaultValue: "USER" }
 })
 
 const Cart = sequelize.define("cart", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    sessionId: {type: DataTypes.STRING, unique: true},
+    sessionId: { type: DataTypes.STRING, unique: true },
 })
 
 const Forever = sequelize.define("forever", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    sessionId: {type: DataTypes.STRING, unique: true},
+    sessionId: { type: DataTypes.STRING, unique: true },
 })
 
 const CartProduct = sequelize.define("cart_product", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     size: { type: DataTypes.STRING, allowNull: false },
-    quantity: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 1},
-    total: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 0}
+    quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
+    total: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 }
 })
 
 const ForeverProduct = sequelize.define("forever_product", {
@@ -35,11 +35,11 @@ const Order = sequelize.define("order", {
     mail: { type: DataTypes.STRING, allowNull: false },
     name: { type: DataTypes.STRING, allowNull: false },
     adress: { type: DataTypes.STRING, allowNull: false },
-    phone: {type: DataTypes.STRING, allowNull: false},
+    phone: { type: DataTypes.STRING, allowNull: false },
     delivery: { type: DataTypes.STRING, allowNull: false },
     pay: { type: DataTypes.STRING, allowNull: false },
-    policy: {type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false},
-    total: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 0}
+    policy: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    total: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 }
 })
 
 const Product = sequelize.define("product", {
@@ -53,15 +53,16 @@ const Product = sequelize.define("product", {
     hight: { type: DataTypes.INTEGER, allowNull: false },
     hardness: { type: DataTypes.INTEGER, allowNull: false },
     size: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: [] },
-    description: { type: DataTypes.TEXT, allowNull: true }
+    description: { type: DataTypes.TEXT, allowNull: true },
+    from: { type: DataTypes.STRING, allowNull: true }
 })
 
 const OrderItem = sequelize.define("order_item", {
-    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-    quantity: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 1},
-    price: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
-    productName: {type: DataTypes.STRING, allowNull: false},
-    size:  {type: DataTypes.STRING, allowNull: false}
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
+    price: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    productName: { type: DataTypes.STRING, allowNull: false },
+    size: { type: DataTypes.STRING, allowNull: false }
 })
 
 const Rating = sequelize.define("rating", {
@@ -70,7 +71,7 @@ const Rating = sequelize.define("rating", {
     grade: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     gradeText: { type: DataTypes.TEXT, allowNull: true },
     img: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: true },
-    sessionId: {type: DataTypes.STRING, allowNull: false}
+    sessionId: { type: DataTypes.STRING, allowNull: false }
 }, {
     indexes: [
         {

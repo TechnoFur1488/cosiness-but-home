@@ -168,10 +168,10 @@ class ProductController {
 
             if (!files || files.length === 0) {
                 await deleteLocalFiles(files)
-                return res.status(400).json({ message: "Не все поля заполнены" })
+                return res.status(401).json({ message: "Не все поля заполнены" })
             }
 
-            if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description || !catalogId) {
+            if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description) {
                 await deleteLocalFiles(files)
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
