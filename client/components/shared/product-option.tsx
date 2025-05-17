@@ -5,8 +5,10 @@ import { useParams } from 'next/navigation'
 import React, { useState } from 'react'
 import { ProductOptionImg, ProductInformation, ProductBuy } from './index'
 import { UpdateProduct } from './update-product'
+import { ProductOptionLoading } from '../status/product-option-loading'
 
 export const ProductOption = () => {
+    const [selectedSize, setSelectedSize] = useState<string>("")
     const router = useParams()
     const productId = router.productId
 
@@ -25,8 +27,7 @@ export const ProductOption = () => {
     const [from, setFrom] = useState("")
     const [image, setImage] = useState<File[]>([])
 
-
-    if (isLoading) return <div>Loading...</div>
+    if (isLoading) return <ProductOptionLoading />
     if (isError) return <div>Error</div>
     if (!data) return <div>Product not found</div>
 
@@ -112,12 +113,16 @@ export const ProductOption = () => {
 
                 editFrom={from}
                 setEditFrom={setFrom}
+
+                selectSize={setSelectedSize}
             />
             <ProductBuy
                 isEdit={edit}
                 isSize={product.size}
                 isPrice={product.price}
                 isDiscount={product.discount}
+                isSelectedSize={selectedSize}
+                isProductId={productId}
 
                 editPrice={price}
                 setEditPrice={setPrice}

@@ -1,4 +1,4 @@
-import { Product } from "../model/model.js"
+import { Product, Rating } from "../model/model.js"
 import { deleteDriveFiles, deleteLocalFiles, postDriveFiles } from "../services/googleDriveServices.js"
 
 class ProductController {
@@ -118,16 +118,28 @@ class ProductController {
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
-            const product = await Product.findByPk(id)
+            const product = await Product.findByPk(id, {
+                include: [{
+                    model: Rating,
+                    as: "Ratings"
+                }]
+            })
 
             if (!product) {
                 await deleteLocalFiles(files)
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
+            const allFile = [
+                ...(product.img || []),
+                ...(product.Ratings?.flatMap(rating => rating.img) || [])
+            ]
+
             await Promise.all([
-                deleteDriveFiles(product.img || []),
-                deleteLocalFiles(files)
+                deleteDriveFiles(allFile),
+                deleteLocalFiles(files),
+
+                Rating.destroy({ where: { productId: id }, individualHooks: true })
             ])
 
             await product.destroy({ userId })
@@ -193,8 +205,8 @@ class ProductController {
                     imageUrls = await postDriveFiles(files)
 
                 } catch (err) {
-                    console.error("Ошибка загрузки файлов:", err);
-                    await deleteLocalFiles(files);
+                    console.error("Ошибка загрузки файлов:", err)
+                    await deleteLocalFiles(files)
                     return res.status(500).json({ message: "Ошибка при обновлении изображений" })
                 }
             }

@@ -1,23 +1,19 @@
 "use client"
 
 import { useDeleteCartMutation, useGetCartQuery } from '@/store/apiSlice'
-import React from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import { Heart, Minus, Plus, Trash2 } from 'lucide-react'
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { CartForm } from './cart-form'
 
-
-interface Props {
-    className?: string
-}
-
 interface Cart {
     id: number
     size: Array<string>
     quantity: number
     total: number
+    productId: number
     product: {
         name: string
         img: Array<string>
@@ -25,7 +21,7 @@ interface Cart {
 }
 
 
-export const Cart: React.FC<Props> = ({ className }) => {
+export const Cart = () => {
     const { data, isLoading, isError } = useGetCartQuery()
     const [deleteCart] = useDeleteCartMutation()
 
@@ -36,7 +32,7 @@ export const Cart: React.FC<Props> = ({ className }) => {
 
     const handleDeleteCart = async (id: number) => {
         try {
-            await deleteCart(id).unwrap
+            await deleteCart(id).unwrap()
         } catch (err) {
             alert("Не смогли удалить товар из корзины")
             console.error(err)
@@ -83,11 +79,11 @@ export const Cart: React.FC<Props> = ({ className }) => {
                                     </div>
                                 </div>
                                 <div className={"flex items-center justify-between w-[150px]"}>
-                                    <button onClick={() => {el.id, el.quantity - 1}} className={" cursor-pointer w-10 h-10 bg-[#E5E5EA] rounded-2xl flex items-center justify-center hover:bg-[#DBDBDB] transition duration-150"}>
+                                    <button onClick={() => { el.id, el.quantity - 1 }} className={" cursor-pointer w-10 h-10 bg-[#E5E5EA] rounded-2xl flex items-center justify-center hover:bg-[#DBDBDB] transition duration-150"}>
                                         <Minus width={32} height={32} />
                                     </button>
                                     <span className={"text-[26px] font-medium"}>{el.quantity}</span>
-                                    <button onClick={() => {el.quantity + 1}} className={" cursor-pointer w-10 h-10 bg-[#E5E5EA] rounded-2xl flex items-center justify-center hover:bg-[#DBDBDB] transition duration-150"}>
+                                    <button onClick={() => { el.quantity + 1 }} className={" cursor-pointer w-10 h-10 bg-[#E5E5EA] rounded-2xl flex items-center justify-center hover:bg-[#DBDBDB] transition duration-150"}>
                                         <Plus width={32} height={32} />
                                     </button>
                                 </div>

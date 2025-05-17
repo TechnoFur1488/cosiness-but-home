@@ -29,13 +29,12 @@ import { Button } from '../ui/button'
 import { Minus, Plus } from 'lucide-react'
 
 interface Props {
-    className?: string
     isPrice: number
     isSize: Array<string>
     isId: number
 }
 
-export const AddCart: React.FC<Props> = ({ isPrice, isSize, isId }) => {
+export const AddCart = ({ isPrice, isSize, isId }: Props) => {
     const [postCart] = usePostCartMutation()
 
     const formSchema = z.object({

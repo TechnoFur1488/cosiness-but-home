@@ -80,6 +80,7 @@ interface Cart {
     size: Array<string>
     quantity: number
     total: number
+    productId: number
     product: {
         name: string
         img: Array<string>
@@ -164,6 +165,10 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ["Product"]
         }),
+        getOneProducts: builder.query<{ product: Products }, number | void>({
+            query: (id) => `/api/products/${id}`,
+            providesTags: ["Product"]
+        }), 
 
         registration: builder.mutation<Auth, Partial<Auth>>({
             query: (user) => ({
@@ -181,14 +186,7 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ["User"]
         }),
-
-
-        getOneProducts: builder.query<{ product: Products }, number | void>({
-            query: (id) => `/api/products/${id}`,
-            providesTags: ["Product"]
-        }),
-
-
+ 
         getRating: builder.query<{ rating: Rating[] }, number>({
             query: (productId) => `/api/rating/${productId}`,
             providesTags: ["Rating"]

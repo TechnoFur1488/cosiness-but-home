@@ -1,14 +1,13 @@
-import React from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 
 interface Props {
-    className?: string
-    isSize: Array<string>
+    isSize: string[]
+    selectSize: React.Dispatch<React.SetStateAction<string>>
 }
 
-export const ProductSelectSize: React.FC<Props> = ({ isSize }) => {
+export const ProductSelectSize = ({ isSize, selectSize }: Props) => {
     return (
-        <Select>
+        <Select onValueChange={(value) => selectSize(value)}>
             <SelectTrigger className={"w-[467px]"}>
                 <SelectValue placeholder="Выберите размер" />
             </SelectTrigger>

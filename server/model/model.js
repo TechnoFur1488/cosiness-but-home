@@ -113,7 +113,7 @@ CartProduct.belongsTo(Product)
 Catalog.hasMany(Product)
 Product.belongsTo(Catalog)
 
-Product.hasMany(Rating, { onDelete: "CASCADE" })
+Product.hasMany(Rating, { onDelete: "CASCADE", foreignKey: 'productId', as: 'Ratings' })
 Rating.belongsTo(Product)
 
 Product.hasMany(OrderItem)

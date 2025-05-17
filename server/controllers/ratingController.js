@@ -1,51 +1,28 @@
-import path, { dirname, join } from "path"
-import { google } from "googleapis"
-import fs from "fs"
 import { Rating, Product } from "../model/model.js"
-import { fileURLToPath } from "url"
-import dotenv from "dotenv"
-
-dotenv.config()
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const auth = new google.auth.GoogleAuth({
-    keyFile: join(__dirname, "..", "google-credentials.json"),
-    scopes: ["https://www.googleapis.com/auth/drive"]
-})
-
-const drive = google.drive({ version: "v3", auth })
+import { deleteDriveFiles, deleteLocalFiles, postDriveFilesRating } from "../services/googleDriveServices.js"
 
 class RatingController {
     async createRating(req, res) {
+        const { productId } = req.params
+        const { name, grade, gradeText } = req.body;
+        const sessionId = req.sessionId;
+        const files = req.files || []
 
-        
+
         try {
-            const { productId } = req.params
-            const { name, grade, gradeText } = req.body;
-            const sessionId = req.sessionId;
-            const files = req.files || []
 
-            // if (gradeText.length > 1000) {
-            //     return res.status(400).json({ message: "Описание не может привышать больше 1000 символов" })
-            // }
+            if (gradeText.length > 1000) {
+                await deleteLocalFiles(files)
+                return res.status(400).json({ message: "Описание не может привышать больше 1000 символов" })
+            }
 
             if (!name || !grade) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
 
             if (grade > 5 || grade < 1 || grade === 0) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(400).json({ message: "Оценка должна быть от 1 до 5" })
 
             }
@@ -53,11 +30,7 @@ class RatingController {
             const product = await Product.findByPk(productId)
 
             if (!product) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(404).json({ message: "Продукт не найден" })
             }
 
@@ -69,60 +42,29 @@ class RatingController {
             });
 
             if (existingRating) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(400).json({ message: "Вы уже оставляли отзыв для этого продукта" });
             }
 
-            const imageUrls = await Promise.all(files.map(async (file) => {
-                const response = await drive.files.create({
-                    requestBody: {
-                        name: file.originalname || path.basename(file.path),
-                        mimeType: file.mimetype,
-                        parents: [process.env.GOOGLE_DRIVE_RATING_PHOTO]
-                    },
-                    media: {
-                        mimeType: file.mimetype,
-                        body: fs.createReadStream(file.path)
-                    }
-                })
-                drive.permissions.create({
-                    fileId: response.data.id,
-                    requestBody: {
-                        role: "reader",
-                        type: "anyone"
-                    }
-                })
- 
-                return `https://drive.google.com/uc?export=view&id=${response.data.id}` 
-            }))
-
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
+            const imageUrls = await postDriveFilesRating(files)
 
             const ratings = await Rating.create({ name, grade, gradeText: gradeText, img: imageUrls, productId: productId, sessionId })
+
+            await deleteLocalFiles(files)
 
             return res.status(201).json({ ratings, message: "Рейтинг успешно создан" })
 
         } catch (err) {
             console.error(err)
-
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
-
+            await deleteLocalFiles(files)
             return res.status(500).json({ message: "Ошибка сервера" })
         }
     }
 
     async getAllRating(req, res) {
-        try {
+        const { productId } = req.params
 
-            const { productId } = req.params
+        try {
 
             if (!productId) {
                 return res.status(404).json({ message: "Такого товара не существует" })
@@ -141,105 +83,59 @@ class RatingController {
     async updateRating(req, res) {
 
         const files = req.files || []
+        const { id } = req.params
+        const { name, grade, gradeText } = req.body
+        const sessionId = req.sessionId
 
         try {
-            const { id } = req.params
-            const { name, grade, gradeText } = req.body
-            const sessionId = req.sessionId
-
             if (files > 10) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(400).json({ message: "Максимум 10 фото" })
             }
 
             if (!id) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(404).json({ message: "Такого рейтинга не существует" })
             }
 
             if (!name || !grade) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
 
             if (grade > 5 || grade < 1 || grade === 0) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(400).json({ message: "Оценка должна быть от 1 до 5" })
             }
 
             let rating = await Rating.findOne({ where: { id, sessionId } })
 
             if (!rating) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(404).json({ message: "Вы не можете редактировать этот отзыв или отзыв не найден" })
             }
 
-            await Promise.all(rating.img.map(async (url) => {
+            let imageUrls = rating.img || []
+
+            if (files.length > 0) {
                 try {
-                    const fileId = url.match(/id=([^&]+)/)[1]
 
-                    await drive.files.delete({
-                        fileId: fileId
-                    })
+                    if (rating.img.length > 0) {
+                        await deleteDriveFiles(files)
+                    }
+
+                    imageUrls = await postDriveFilesRating(files)
+
                 } catch (err) {
-                    console.error(err)
-
-                    files.forEach(file => {
-                        fs.unlinkSync(file.path)
-                    })
-
-                    return res.status(500).json({ message: "Ошибка сервера" }) 
+                    console.error("Ошибка загрузки файлов:", err)
+                    await deleteLocalFiles(files)
+                    return res.status(500).json({ message: "Ошибка при обновлении изображений" })
                 }
-            }))
-
-            const imageUrls = await Promise.all(files.map(async (file) => {
-                const response = await drive.files.create({
-                    requestBody: {
-                        name: file.originalname || path.basename(file.path),
-                        mimeType: file.mimetype,
-                        parents: [process.env.GOOGLE_DRIVE_RATING_PHOTO]
-                    },
-                    media: {
-                        mimeType: file.mimetype,
-                        body: fs.createReadStream(file.path)
-                    }
-                })
-                drive.permissions.create({
-                    fileId: response.data.id,
-                    requestBody: {
-                        role: "reader",
-                        type: "anyone"
-                    }
-                })
-
-                return `https://drive.google.com/uc?export=view&id=${response.data.id}`
-            }))
+            }
 
             rating = await Rating.update({ name, grade, gradeText, img: imageUrls }, { where: { id, sessionId } })
 
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
+            await deleteLocalFiles(files)
 
             const updateRating = await Rating.findOne({ where: { id } })
 
@@ -247,11 +143,7 @@ class RatingController {
 
         } catch (err) {
             console.error(err)
-
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
-
+            await deleteLocalFiles(files)
             return res.status(500).json({ message: "Ошибка сервера" })
         }
 
@@ -260,54 +152,27 @@ class RatingController {
     async deleteRating(req, res) {
 
         const files = req.files || []
+        const { id } = req.params
+        const sessionId = req.sessionId
 
         try {
-            const { id } = req.params
-            const sessionId = req.sessionId
 
             if (!id) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(404).json({ message: "Такого рейтинга не существует" })
             }
 
             const rating = await Rating.findOne({ where: { id, sessionId } })
 
             if (!rating) {
-
-                files.forEach(file => {
-                    fs.unlinkSync(file.path)
-                })
-
+                await deleteLocalFiles(files)
                 return res.status(404).json({ message: "Такого рейтинга не существует или вы не можете его удалить" })
             }
 
-            const imgUrls = rating.img
-
-            await Promise.all(imgUrls.map(async (url) => {
-                try {
-                    const fileId = url.match(/id=([^&]+)/)[1]
-
-                    await drive.files.delete({
-                        fileId: fileId
-                    })
-                } catch (err) {
-
-
-                    files.forEach(file => {
-                        fs.unlinkSync(file.path)  
-                    })
-
-                    console.error(err)
-                }
-            }))
-
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
+            await Promise.all([
+                deleteDriveFiles(rating.img || []),
+                deleteLocalFiles(files)
+            ])
 
             await rating.destroy()
 
@@ -315,10 +180,12 @@ class RatingController {
         } catch (err) {
             console.error(err)
 
-            files.forEach(file => {
-                fs.unlinkSync(file.path)
-            })
- 
+            try {
+                await deleteLocalFiles(req.files || [])
+            } catch (fileErr) {
+                console.error("Ошибка упри удалении временных файлов", fileErr)
+            }
+
             return res.status(500).json({ message: "Ошибка сервера" })
         }
 

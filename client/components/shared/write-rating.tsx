@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import { useState } from 'react'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -13,50 +13,26 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '../ui/form'
 import { z } from "zod"
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { usePostRatingMutation } from '@/store/apiSlice'
 import { useParams } from 'next/navigation'
-import { Star } from 'lucide-react'
+import { Star, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
+import Image from 'next/image'
+import { RatingFormValues } from '../forms/rating-form'
+import { useRatingForm } from '../hooks/use-rating-form'
 
-interface Props {
-    className?: string
-}
-
-export const WriteRating: React.FC<Props> = ({ }) => {
+export const WriteRating = () => {
+    const [previewUrls, setPreviewUrls] = useState<string[]>([])
     const router = useParams()
     const productId = Number(router.productId)
     const [postData] = usePostRatingMutation()
+    const { form } = useRatingForm()
 
-    const formSchema = z.object({
-        name: z.string().min(2, { message: "Минимум 2 символа" }),
-        grade: z.number().min(1).max(5),
-        gradeText: z.string().max(1000, { message: "Максимум 1000 символов" }),
-        img: z.instanceof(FileList).optional()
-            .refine(files => !files || files.length <= 10, "Максимум 10 изображений")
-            .refine(files => {
-                if (!files) return true;
-                return Array.from(files).every(file => file.size <= 5_000_000) 
-            }, "Каждое изображение должно быть меньше 5MB"),
-    })
-
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            name: "",
-            grade: 0,
-            gradeText: "",
-            img: undefined,
-        }
-    })
-
-    const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    const onSubmit = async (data: RatingFormValues) => {
         try {
             const formData = new FormData()
-
             formData.append("name", data.name)
             formData.append("grade", String(data.grade))
             formData.append("productId", String(productId))
@@ -70,12 +46,42 @@ export const WriteRating: React.FC<Props> = ({ }) => {
 
             await postData(formData).unwrap()
             form.reset()
+            setPreviewUrls([])
         } catch (err) {
             alert("Вы уже оставили отзыв")
         }
     }
 
-    const isFormValid = form.formState.isValid
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            form.setValue("img", e.target.files)
+
+            const files = Array.from(e.target.files)
+            const urls = files.map(file => URL.createObjectURL(file))
+            setPreviewUrls(urls)
+        }
+    }
+
+    const handleRemoveFile = (index: number) => {
+        const newUrls = [...previewUrls]
+        URL.revokeObjectURL(newUrls[index])
+        newUrls.splice(index, 1)
+        setPreviewUrls(newUrls)
+
+        const currentFiles = form.getValues("img")
+
+        if (currentFiles && currentFiles.length > 0) {
+            const files = Array.from(currentFiles)
+            files.splice(index, 1)
+
+            const dataTransfer = new DataTransfer()
+            files.forEach(file => dataTransfer.items.add(file))
+
+            form.setValue("img", dataTransfer.files)
+        }
+    }
+
+    // const isFormValid = form.formState.isValid
 
     return (
         <AlertDialog>
@@ -149,15 +155,17 @@ export const WriteRating: React.FC<Props> = ({ }) => {
                                         <FormLabel>Фото</FormLabel>
                                         <FormControl>
                                             <div className="space-y-2">
-                                                <Input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    multiple
-                                                    {...rest}
-                                                    onChange={(e) => {
-                                                        onChange(e.target.files)
-                                                    }}
-                                                />
+                                                <Input multiple type="file" {...rest} onChange={handleFileChange} accept="image/*,.png,.jpg,.web" />
+                                                <div className={"grid grid-cols-3 gap-x-5 gap-y-5 my-5"}>
+                                                    {previewUrls.map((el: string, i: number) => (
+                                                        <div key={i} className={"flex w-30 relative"}>
+                                                            <Image className={"object-cover rounded-2xl min-h-[190px] max-h-[190px]"} src={el} alt="Ваша картинка с отзывами" width={120} height={190} />
+                                                            <button onClick={() => handleRemoveFile(i)} className={"cursor-pointer absolute right-1 top-1"}>
+                                                                <Trash2 color='black' fill='currentColor' className={'hover:text-red-600 duration-300 transition hover:scale-120 text-[#E5E5EA]'} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </FormControl>
                                         <FormDescription>
@@ -178,7 +186,7 @@ export const WriteRating: React.FC<Props> = ({ }) => {
                             <AlertDialogCancel>Вернуться</AlertDialogCancel>
                             <AlertDialogAction
                                 className={"bg-[#E5E5EA] text-black cursor-pointer hover:bg-[#DBDBDB] transition duration-150"}
-                                disabled={!isFormValid}
+                                // disabled={!isFormValid}
                                 type='submit'
                             >
                                 Отправить отзыв

@@ -38,6 +38,8 @@ interface Props {
 
     editFrom: string
     setEditFrom: React.Dispatch<React.SetStateAction<string>>
+
+    selectSize: React.Dispatch<React.SetStateAction<string>>
 }
 
 export const ProductInformation = ({
@@ -73,7 +75,9 @@ export const ProductInformation = ({
     setEditDescription,
 
     editFrom,
-    setEditFrom
+    setEditFrom,
+
+    selectSize
 }: Props) => {
     let description: string = isDescription
 
@@ -127,12 +131,12 @@ export const ProductInformation = ({
                         <span><span className={" text-[#6E6E73]"}>Состав:</span> {isCompound}</span>
                         <span><span className={" text-[#6E6E73]"}>Основа:</span> {isWarp}</span>
                         <span><span className={" text-[#6E6E73]"}>Высота ворса:</span> {isHight} мм</span>
-                        <span><span className={" text-[#6E6E73]"}>Плотность:</span> {isHardness} </span>
+                        <span><span className={" text-[#6E6E73]"}>Плотность:</span> {isHardness.toLocaleString("ru-RU")} </span>
                         <span><span className={" text-[#6E6E73]"}>Производитель:</span> {isFrom} </span>
                     </div>
                     <h2 className={"py-[10px] text-[32px] font-medium"}>Размеры</h2>
                     <div>
-                        <ProductSelectSize isSize={isSize} />
+                        <ProductSelectSize selectSize={selectSize} isSize={isSize} />
                     </div>
                     <h2 className={"py-[10px] text-[32px] font-medium"}>Описание</h2>
                     <p className={"text-[#6E6E73] "}>
