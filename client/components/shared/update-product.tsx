@@ -77,11 +77,8 @@ export const UpdateProduct = ({
         formData.append("from", isFrom)
 
         try {
-
             await updateProductOption(formData).unwrap()
-
             isSetEdit(false)
-
         } catch (err) {
             alert("Не смогли обновить товар")
             console.error(err)
@@ -99,7 +96,7 @@ export const UpdateProduct = ({
                             <Button className={"bg-white cursor-pointer"} variant={"outline"} onClick={() => isSetEdit(false)}>Отменить</Button>
                         </div>
                         :
-                        <div className={"absolute left-4 top-4 z-60"}>
+                        <div className={"absolute left-4 top-4 z-2"}>
                             <button onClick={() => {
                                 if (isEdit) {
                                     isSetEdit(false)

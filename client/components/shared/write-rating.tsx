@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from 'react'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -12,7 +11,6 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '../ui/form'
-import { z } from "zod"
 import { usePostRatingMutation } from '@/store/apiSlice'
 import { useParams } from 'next/navigation'
 import { Star, Trash2 } from 'lucide-react'
@@ -22,13 +20,19 @@ import { Textarea } from '../ui/textarea'
 import Image from 'next/image'
 import { RatingFormValues } from '../forms/rating-form'
 import { useRatingForm } from '../hooks/use-rating-form'
+import { useState } from "react"
 
 export const WriteRating = () => {
     const [previewUrls, setPreviewUrls] = useState<string[]>([])
     const router = useParams()
     const productId = Number(router.productId)
     const [postData] = usePostRatingMutation()
-    const { form } = useRatingForm()
+    const { form } = useRatingForm({
+        isName: "",
+        isGrade: 0,
+        isGradeText: "",
+        isImg: undefined
+    })
 
     const onSubmit = async (data: RatingFormValues) => {
         try {
@@ -81,7 +85,7 @@ export const WriteRating = () => {
         }
     }
 
-    // const isFormValid = form.formState.isValid
+    const isFormValid = form.formState.isValid
 
     return (
         <AlertDialog>
@@ -186,7 +190,7 @@ export const WriteRating = () => {
                             <AlertDialogCancel>Вернуться</AlertDialogCancel>
                             <AlertDialogAction
                                 className={"bg-[#E5E5EA] text-black cursor-pointer hover:bg-[#DBDBDB] transition duration-150"}
-                                // disabled={!isFormValid}
+                                disabled={!isFormValid}
                                 type='submit'
                             >
                                 Отправить отзыв

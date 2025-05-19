@@ -1,5 +1,8 @@
 import { Product, Rating } from "../model/model.js"
 import { deleteDriveFiles, deleteLocalFiles, postDriveFiles } from "../services/googleDriveServices.js"
+import "dotenv"
+
+const uploadProductImg = process.env.GOOGLE_DRIVE_PRODUCT_PHOTO
 
 class ProductController {
     async createProduct(req, res) {
@@ -8,35 +11,35 @@ class ProductController {
         const files = req.files
         const userId = req.user.id
 
+
         if (req.user.role !== "ADMIN") {
-            await deleteLocalFiles(files)
-
+            await deleteLocalFiles()
             return res.status(403).json({ message: "Доступа запрещен" })
-
         }
 
         try {
 
             if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description || !catalogId) {
-                await deleteLocalFiles(files)
-
+                await deleteLocalFiles()
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
 
             if (description.trim().length < 100) {
-                await deleteLocalFiles(files)
-
+                await deleteLocalFiles()
                 return res.status(406).json({ message: "Описание не может быть меньше чем 100 симолов" })
             }
 
             if (files.length === 0) {
-                await deleteLocalFiles(files)
-
+                await deleteLocalFiles()
                 return res.status(406).json({ message: "Не все поля заполнены" })
             }
 
-            const imageUrls = await postDriveFiles(files)
+            let imageUrls = await postDriveFiles(files, uploadProductImg)
 
+            if (imageUrls.length === 0) {
+                await deleteLocalFiles()
+                return res.status(500).json({ message: "Ошибка сервера" })
+            }
 
             const sizeArray = typeof size === "string" ? size.split(" ") : Array.isArray(size) ? size : []
 
@@ -51,13 +54,13 @@ class ProductController {
             })
 
             const product = await Product.create({ userId, img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizes.map(s => s.size), description, from, catalogId })
-
-            deleteLocalFiles(files)
+ 
+            await deleteLocalFiles()
 
             return res.status(201).json({ product, message: "Товар успешно создан" })
         } catch (err) {
             console.error(err)
-            await deleteLocalFiles(files)
+            await deleteLocalFiles()
             return res.status(500).json({ message: "Ошибка сервера" })
         }
     }
@@ -84,7 +87,7 @@ class ProductController {
     async getOneProducts(req, res) {
 
         const { id } = req.params
-        
+
         try {
 
             if (!id) {
@@ -103,18 +106,17 @@ class ProductController {
     async deleteProduct(req, res) {
 
         const { id } = req.params
-        const files = req.files || []
         const userId = req.user.id
 
         if (req.user.role !== "ADMIN") {
-            await deleteLocalFiles(files)
+            await deleteLocalFiles()
             return res.status(403).json({ message: "Доступа запрещен" })
         }
 
         try {
 
             if (!id) {
-                await deleteLocalFiles(files)
+                await deleteLocalFiles()
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
@@ -126,7 +128,7 @@ class ProductController {
             })
 
             if (!product) {
-                await deleteLocalFiles(files)
+                await deleteLocalFiles()
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
@@ -137,7 +139,7 @@ class ProductController {
 
             await Promise.all([
                 deleteDriveFiles(allFile),
-                deleteLocalFiles(files),
+                deleteLocalFiles(),
 
                 Rating.destroy({ where: { productId: id }, individualHooks: true })
             ])
@@ -166,7 +168,7 @@ class ProductController {
         const userId = req.user.id
 
         if (req.user.role !== "ADMIN") {
-            await deleteLocalFiles(files)
+            await deleteLocalFiles()
             return res.status(403).json({ message: "Доступа запрещен" })
         }
 
@@ -179,17 +181,17 @@ class ProductController {
             }
 
             if (!files || files.length === 0) {
-                await deleteLocalFiles(files)
+                await deleteLocalFiles()
                 return res.status(401).json({ message: "Не все поля заполнены" })
             }
 
             if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description) {
-                await deleteLocalFiles(files)
+                await deleteLocalFiles()
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
 
             if (description.trim().length < 100) {
-                await deleteLocalFiles(files)
+                await deleteLocalFiles()
                 return res.status(406).json({ message: "Описание не может быть меньше чем 100 симолов" })
             }
 
@@ -198,15 +200,15 @@ class ProductController {
             if (files?.length > 0) {
                 try {
 
-                    if (product.img?.length > 0) {
-                        await deleteDriveFiles(product.img)
+                    if (imageUrls.length > 0) {
+                        await deleteDriveFiles(imageUrls)
                     }
 
-                    imageUrls = await postDriveFiles(files)
+                    imageUrls = await postDriveFiles(files, uploadProductImg)
 
                 } catch (err) {
                     console.error("Ошибка загрузки файлов:", err)
-                    await deleteLocalFiles(files)
+                    await deleteLocalFiles()
                     return res.status(500).json({ message: "Ошибка при обновлении изображений" })
                 }
             }
@@ -215,15 +217,15 @@ class ProductController {
 
             product = await Product.update({ userId, img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizeArray, description, from, catalogId }, { where: { id } })
 
-            await deleteLocalFiles(files)
-
             const productUpdate = await Product.findOne({ where: { id } })
+            
+            await deleteLocalFiles()
 
             return res.status(200).json({ productUpdate, message: "Товар успешно обновлен" })
 
         } catch (err) {
             console.error(err)
-            await deleteLocalFiles(files)
+            await deleteLocalFiles()
             return res.status(500).json({ message: "Ошибка сервера" })
         }
     }

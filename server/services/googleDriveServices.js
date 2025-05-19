@@ -2,6 +2,7 @@ import { google } from "googleapis"
 import fs from "fs"
 import { fileURLToPath } from "url"
 import path, { dirname } from "path"
+import sharp from "sharp"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -13,16 +14,40 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: "v3", auth, timeout: 10000 })
 
-export const deleteLocalFiles = async (files) => {
-    if (!files || !files.length) return
+export const deleteLocalFiles = async () => {
+    const pathFolder = path.join(__dirname, "..", "uploads")
 
-    await Promise.all(
-        files.map(file =>
-            fs.promises.unlink(file.path).catch(err =>
-                console.error(`Ошибка удаления локального файла ${file.path}:`, err)
-            )
-        )
-    )
+    try {
+        await fs.promises.access(pathFolder)
+        const files = await fs.promises.readdir(pathFolder)
+
+        await Promise.all(files.map(async (file) => {
+            const filePath = path.join(pathFolder, file)
+            const stat = await fs.promises.stat(filePath)
+
+            if (stat.isDirectory()) {
+                await fs.promises.rm(filePath, { recursive: true, force: true })
+            } else {
+                try {
+                    await fs.promises.unlink(filePath)
+                } catch (err) {
+                    if (err.code !== "EBUSY") {
+                        throw err
+                    }
+
+                    await new Promise(resolve => setTimeout(resolve, 100))
+                    await fs.promises.unlink(filePath)
+                }
+            }
+        }))
+
+        console.log(`Содержимое папки ${pathFolder} успешно удалено`)
+
+    } catch (err) {
+        if (err.code !== 'ENOENT') {
+            console.error('Ошибка при удалении файлов:', err);
+        }
+    }
 }
 
 export const deleteDriveFiles = async (imgUrls) => {
@@ -32,6 +57,7 @@ export const deleteDriveFiles = async (imgUrls) => {
         imgUrls.map(async (url) => {
             try {
                 const fileId = url.match(/id=([^&]+)/)?.[1]
+
                 if (fileId) {
                     await drive.files.delete({ fileId })
                     console.log(`Файл ${fileId} успешно удален из Drive`)
@@ -43,22 +69,37 @@ export const deleteDriveFiles = async (imgUrls) => {
     )
 }
 
-export const postDriveFiles = async (files) => {
-    if (!files?.length) return []
+export const postDriveFiles = async (files, folderId) => {
+    if (!files || !files.length) return
+
 
     let uploadedUrls = []
+    const streamsToClose = []
 
     try {
-        
-        const uploadPromises = files.map(async (file) => {
+
+        uploadedUrls = await Promise.all(files.map(async (file) => {
+
+            const readStream = fs.createReadStream(file.path)
+            const convertedStream = readStream.pipe(
+                sharp()
+                    .toFormat("webp", { quality: 80 })
+                    .on('error', err => console.error('Conversion error:', err))
+            )
+
+            const originalName = file.originalname || path.basename(file.path)
+            const webpName = path.parse(originalName).name + '.webp'
+
+            streamsToClose.push(readStream)
+
             const fileMetadata = {
-                name: file.originalname || path.basename(file.path),
-                parents: [process.env.GOOGLE_DRIVE_PRODUCT_PHOTO]
+                name: webpName,
+                parents: [folderId]
             }
 
             const media = {
-                mimeType: file.mimetype,
-                body: fs.createReadStream(file.path)
+                mimeType: "image/webp",
+                body: convertedStream
             }
 
             const response = await drive.files.create({
@@ -68,58 +109,18 @@ export const postDriveFiles = async (files) => {
             })
 
             return `https://drive.google.com/uc?export=view&id=${response.data.id}`
-        })
+        }))
 
-        return uploadedUrls = await Promise.all(uploadPromises)
+        streamsToClose.forEach(stream => {
+            if (typeof stream.close === 'function') {
+                stream.close()
+            }
+        });
+
+        return uploadedUrls
 
     } catch (err) {
-
-        if (uploadedUrls.length > 0) {
-            await deleteDriveFiles(uploadedUrls)
-            await deleteLocalFiles(files)
-        }
-
-        console.error('Ошибка загрузки файлов на Drive:', err)
+        console.error('Ошибка загрузки файлов:', err);
+        await deleteLocalFiles()
     }
 }
-
-export const postDriveFilesRating = async (files) => {
-    if (!files?.length) return []
-
-    let uploadedUrls = []
-
-    try {
-        
-        const uploadPromises = files.map(async (file) => {
-            const fileMetadata = {
-                name: file.originalname || path.basename(file.path),
-                parents: [process.env.GOOGLE_DRIVE_RATING_PHOTO]
-            }
-
-            const media = {
-                mimeType: file.mimetype,
-                body: fs.createReadStream(file.path)
-            }
-
-            const response = await drive.files.create({
-                requestBody: fileMetadata,
-                media: media,
-                fields: "id"
-            })
-
-            return `https://drive.google.com/uc?export=view&id=${response.data.id}`
-        })
-
-        return uploadedUrls = await Promise.all(uploadPromises)
-
-    } catch (err) {
-
-        if (uploadedUrls.length > 0) {
-            await deleteDriveFiles(uploadedUrls)
-            await deleteLocalFiles(files)
-        }
-
-        console.error('Ошибка загрузки файлов на Drive:', err)
-    }
-}
-

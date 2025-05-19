@@ -1,8 +1,4 @@
 import { useUpdateRatingMutation } from '@/store/apiSlice'
-import { zodResolver } from '@hookform/resolvers/zod'
-import React from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -13,47 +9,34 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Pencil, Star } from 'lucide-react'
+import { Pencil, Star, Trash2 } from 'lucide-react'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '../ui/form'
 import { cn } from '@/lib/utils'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
+import { useRatingForm } from '../hooks/use-rating-form'
+import { RatingFormValues } from '../forms/rating-form'
+import Image from 'next/image'
+import { useState } from 'react'
 
 interface Props {
     isId: number
     isGrade: number
     isName: string
     isGradeText: string
-    isImg: Array<string>
 }
 
-export const UpdateRating: React.FC<Props> = ({ isId, isGrade, isName, isGradeText, isImg }) => {
-
+export const UpdateRating = ({ isId, isGrade, isName, isGradeText }: Props) => {
+    const [previewUrls, setPreviewUrls] = useState<string[]>([])
     const [updateRating] = useUpdateRatingMutation()
-
-    const formSchema = z.object({
-        name: z.string().min(2, { message: "Минимум 2 символа" }),
-        grade: z.number().min(1).max(5),
-        gradeText: z.string().max(1000, { message: "Максимум 1000 символов" }),
-        img: z.instanceof(FileList).optional()
-            .refine(files => !files || files.length <= 10, "Максимум 10 изображений")
-            .refine(files => {
-                if (!files) return true;
-                return Array.from(files).every(file => file.size <= 5_000_000)
-            }, "Каждое изображение должно быть меньше 5MB"),
+    const { form } = useRatingForm({
+        isName: isName,
+        isGrade: isGrade,
+        isGradeText: isGradeText,
+        isImg: undefined
     })
 
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            name: isName,
-            grade: isGrade,
-            gradeText: isGradeText || "",
-            img: undefined
-        }
-    })
-
-    const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    const onSubmit = async (data: RatingFormValues) => {
         try {
             const formData = new FormData()
 
@@ -71,6 +54,35 @@ export const UpdateRating: React.FC<Props> = ({ isId, isGrade, isName, isGradeTe
             await updateRating(formData).unwrap()
         } catch (err) {
             alert("не ваш отзыв")
+        }
+    }
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            form.setValue("img", e.target.files)
+
+            const files = Array.from(e.target.files)
+            const urls = files.map(file => URL.createObjectURL(file))
+            setPreviewUrls(urls)
+        }
+    }
+
+    const handleRemoveFile = (index: number) => {
+        const newUrls = [...previewUrls]
+        URL.revokeObjectURL(newUrls[index])
+        newUrls.splice(index, 1)
+        setPreviewUrls(newUrls)
+
+        const currentFiles = form.getValues("img")
+
+        if (currentFiles && currentFiles.length > 0) {
+            const files = Array.from(currentFiles)
+            files.splice(index, 1)
+
+            const dataTransfer = new DataTransfer()
+            files.forEach(file => dataTransfer.items.add(file))
+
+            form.setValue("img", dataTransfer.files)
         }
     }
 
@@ -148,15 +160,17 @@ export const UpdateRating: React.FC<Props> = ({ isId, isGrade, isName, isGradeTe
                                         <FormLabel>Фото</FormLabel>
                                         <FormControl>
                                             <div className="space-y-2">
-                                                <Input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    multiple
-                                                    {...rest}
-                                                    onChange={(e) => {
-                                                        onChange(e.target.files)
-                                                    }}
-                                                />
+                                                <Input multiple type="file" {...rest} onChange={handleFileChange} accept="image/*,.png,.jpg,.web" />
+                                                <div className={"grid grid-cols-3 gap-x-5 gap-y-5 my-5"}>
+                                                    {previewUrls.map((el: string, i: number) => (
+                                                        <div key={i} className={"flex w-30 relative"}>
+                                                            <Image className={"object-cover rounded-2xl min-h-[190px] max-h-[190px]"} src={el} alt="Ваша картинка с отзывами" width={120} height={190} />
+                                                            <button onClick={() => handleRemoveFile(i)} className={"cursor-pointer absolute right-1 top-1"}>
+                                                                <Trash2 color='black' fill='currentColor' className={'hover:text-red-600 duration-300 transition hover:scale-120 text-[#E5E5EA]'} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </FormControl>
                                         <FormDescription>

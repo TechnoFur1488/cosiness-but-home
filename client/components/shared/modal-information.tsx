@@ -1,10 +1,10 @@
 import React, { PropsWithChildren } from 'react'
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTrigger, AlertDialogTitle, AlertDialogDescription } from '../ui/alert-dialog'
 
-export const ModalInformation: React.FC<PropsWithChildren> = ({ children }) => {
+export const ModalInformation = ({ children }: PropsWithChildren) => {
     return (
         <AlertDialog>
-            <AlertDialogTrigger className={"cursor-pointer"}>ЕЩЕ</AlertDialogTrigger>
+            <AlertDialogTrigger className={"cursor-pointer font-medium"}>ЕЩЕ</AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Описание</AlertDialogTitle>
