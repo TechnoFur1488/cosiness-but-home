@@ -1,5 +1,6 @@
 import { Cart } from "../model/model.js"
 import { randomBytes } from "crypto"
+import { generateToken } from "../utils/cookieSetings.js"
 
 export const cartMiddleware = async (req, res, next) => {
     try {
@@ -10,7 +11,7 @@ export const cartMiddleware = async (req, res, next) => {
 
         if (!sessionId) {
             sessionId = randomBytes(16).toString("hex")
-            res.cookie("sessionId", sessionId, { maxAge: 30 * 24 * 60 * 60 * 1000 })
+            generateToken(res, sessionId, 30)
         }
 
         cart = await Cart.findOne({ where: { sessionId } })

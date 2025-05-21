@@ -70,7 +70,7 @@ export const deleteDriveFiles = async (imgUrls) => {
 }
 
 export const postDriveFiles = async (files, folderId) => {
-    if (!files || !files.length) return
+    if (!files || !files.length) return []
 
 
     let uploadedUrls = []

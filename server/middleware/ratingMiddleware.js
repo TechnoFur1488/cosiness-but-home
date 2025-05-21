@@ -1,4 +1,5 @@
 import { randomBytes } from "crypto";
+import { generateToken } from "../utils/cookieSetings.js";
 
 export const ratingMiddleware = async (req, res, next) => {
     try {
@@ -6,10 +7,7 @@ export const ratingMiddleware = async (req, res, next) => {
 
         if (!sessionId) {
             sessionId = randomBytes(16).toString("hex");
-            res.cookie("sessionId", sessionId, {
-                maxAge: 365 * 24 * 60 * 60 * 1000,
-                httpOnly: true
-            });
+            generateToken(res, sessionId, 365)
         }
 
         req.sessionId = sessionId;

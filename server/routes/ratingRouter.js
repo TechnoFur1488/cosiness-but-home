@@ -8,6 +8,7 @@ const upload = multer({ dest: "uploads/" })
 
 router.post("/:productId", upload.array("img", 10), ratingController.createRating)
 router.get("/:productId", ratingController.getAllRating)
+router.get("/:productId/my-rating", ratingController.getOneRating)
 router.put("/:id", upload.array("img", 10), ratingController.updateRating)
 router.delete("/:id", upload.array("img", 10), ratingController.deleteRating)
 

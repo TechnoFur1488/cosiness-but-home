@@ -1,5 +1,6 @@
 import { Forever } from "../model/model.js";
 import { randomBytes } from "crypto";
+import { generateToken } from "../utils/cookieSetings.js";
 
 export const foreverMiddleware = async (req, res, next) => {
     try {
@@ -9,7 +10,7 @@ export const foreverMiddleware = async (req, res, next) => {
 
         if (!sessionId) {
             sessionId = randomBytes(16).toString("hex")
-            res.cookie("sessionId", sessionId, { maxAge: 30 * 24 * 60 * 60 * 1000 })
+            generateToken(res, sessionId, 30)
         }
 
         forever = await Forever.findOne({ where: { sessionId } })

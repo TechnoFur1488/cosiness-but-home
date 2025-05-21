@@ -168,7 +168,7 @@ export const apiSlice = createApi({
         getOneProducts: builder.query<{ product: Products }, number | void>({
             query: (id) => `/api/products/${id}`,
             providesTags: ["Product"]
-        }), 
+        }),
 
         registration: builder.mutation<Auth, Partial<Auth>>({
             query: (user) => ({
@@ -186,9 +186,17 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ["User"]
         }),
- 
+        // myCookie:builder.query<
+
         getRating: builder.query<{ rating: Rating[] }, number>({
             query: (productId) => `/api/rating/${productId}`,
+            providesTags: ["Rating"]
+        }),
+        getMyRating: builder.query<{ myRating: Rating }, number>({
+            query: (productId) => ({
+                url: `/api/rating/${productId}/my-rating`,
+                credentials: "include"  
+            }),
             providesTags: ["Rating"]
         }),
         postRating: builder.mutation<PostRating, FormData>({
@@ -323,6 +331,7 @@ export const {
     useRegistrationMutation,
 
     usePostRatingMutation,
+    useGetMyRatingQuery,
     useGetRatingQuery,
     useDeleteRatingMutation,
     useUpdateRatingMutation,

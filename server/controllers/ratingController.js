@@ -81,6 +81,24 @@ class RatingController {
         }
     }
 
+    async getOneRating(req, res) {
+        const { productId } = req.params
+        const sessionId = req.sessionId
+
+        try {
+            const myRating = await Rating.findOne({ where: { productId, sessionId } })
+
+            if (!myRating) {
+                return res.status(404).json({ message: "Отзыв не найден" })
+            }
+
+            return res.status(200).json({ myRating })
+        } catch (err) {
+            console.error(err)
+            return res.status(500).json({ message: "Ошибка сервера" })
+        }
+    }
+
     async updateRating(req, res) {
 
         const { id } = req.params
@@ -137,7 +155,7 @@ class RatingController {
             rating = await Rating.update({ name, grade, gradeText, img: imageUrls }, { where: { id, sessionId } })
 
             const updateRating = await Rating.findOne({ where: { id } })
-            
+
             await deleteLocalFiles()
 
             return res.status(200).json({ updateRating, message: "Рейтинг успешно обновлен" })

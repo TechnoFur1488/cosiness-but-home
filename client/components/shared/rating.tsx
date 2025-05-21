@@ -1,9 +1,9 @@
 "use client"
 
-import { useDeleteRatingMutation, useGetRatingQuery } from '@/store/apiSlice'
+import { useDeleteRatingMutation, useGetMyRatingQuery, useGetRatingQuery } from '@/store/apiSlice'
 import { Star, Trash } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 
 import 'swiper/css';
@@ -14,6 +14,7 @@ import { WriteRating } from './write-rating'
 import Image from 'next/image'
 import { UpdateRating } from './update-rating'
 import { cn } from '@/lib/utils'
+import { MyRating } from './my-rating'
 
 interface Rating {
     id: number
@@ -31,6 +32,7 @@ export const Rating = () => {
     const { data, isLoading, isError } = useGetRatingQuery(Number(productId))
     const [deleteRating] = useDeleteRatingMutation()
     const [bigRating, setBigRating] = useState(false)
+    const { data: myRating, isLoading: myRatingLoading, isError: myRatingError } = useGetMyRatingQuery(Number(productId))
 
     if (isLoading) return <h1>Загрузка</h1>
     if (isError) return <h1>Ошибка</h1>
@@ -53,6 +55,66 @@ export const Rating = () => {
         return new Date(component).toLocaleString("ru-RU", options)
     }
 
+    const maxLengthText = (text: string) => {
+        if (text?.length > 120) {
+            return text.slice(0, 120) + '...'
+        }
+    }
+
+    const gradeRating = (grade: number) => {
+        if (grade === 5) {
+            return (
+                <div className='flex'>
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-yellow-400' fill='currentColor' />
+                </div>
+            )
+        } else if (grade === 4) {
+            return (
+                <div className='flex'>
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-gray-300' fill='currentColor' />
+                </div>
+            )
+        } else if (grade === 3) {
+            return (
+                <div className='flex'>
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-gray-300' fill='currentColor' />
+                    <Star className='text-gray-300' fill='currentColor' />
+                </div>
+            )
+        } else if (grade === 2) {
+            return (
+                <div className='flex'>
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-gray-300' fill='currentColor' />
+                    <Star className='text-gray-300' fill='currentColor' />
+                    <Star className='text-gray-300' fill='currentColor' />
+                </div>
+            )
+        } else if (grade === 1) {
+            return (
+                <div className='flex'>
+                    <Star className='text-yellow-400' fill='currentColor' />
+                    <Star className='text-gray-300' fill='currentColor' />
+                    <Star className='text-gray-300' fill='currentColor' />
+                    <Star className='text-gray-300' fill='currentColor' />
+                    <Star className='text-gray-300' fill='currentColor' />
+                </div>
+            )
+        }
+    }
+
     const averageRating = data.rating.reduce((sum, el) => sum + el.grade, 0) / data.rating.length
     return (
         <div className={"mt-20"}>
@@ -63,76 +125,21 @@ export const Rating = () => {
                 }} navigation={true} modules={[Navigation]} slidesPerView={3} spaceBetween={10}>
                     {data?.rating?.map((el: Rating) => {
 
-                        let grade
-
-                        if (el.grade === 5) {
-                            grade =
-                                <div className='flex'>
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                </div>
-                        } else if (el.grade === 4) {
-                            grade =
-                                <div className='flex'>
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-gray-300' fill='currentColor' />
-                                </div>
-                        } else if (el.grade === 3) {
-                            grade =
-                                <div className='flex'>
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-gray-300' fill='currentColor' />
-                                    <Star className='text-gray-300' fill='currentColor' />
-                                </div>
-                        } else if (el.grade === 2) {
-                            grade =
-                                <div className='flex'>
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-gray-300' fill='currentColor' />
-                                    <Star className='text-gray-300' fill='currentColor' />
-                                    <Star className='text-gray-300' fill='currentColor' />
-                                </div>
-                        } else if (el.grade === 1) {
-                            grade =
-                                <div className='flex'>
-                                    <Star className='text-yellow-400' fill='currentColor' />
-                                    <Star className='text-gray-300' fill='currentColor' />
-                                    <Star className='text-gray-300' fill='currentColor' />
-                                    <Star className='text-gray-300' fill='currentColor' />
-                                    <Star className='text-gray-300' fill='currentColor' />
-                                </div>
-                        }
-
-                        let gradeText: string = el.gradeText
-
-                        if (gradeText?.length > 150) {
-                            gradeText = gradeText.slice(0, 150) + "..."
-                        }
-
                         return (
-                            <SwiperSlide className={'flex flex-col bg-[#F8F8F8] min-w-[467px] min-h-[207px] p-3 rounded-2xl space-y-2 '} key={el.id}>
+                            <SwiperSlide className={'flex flex-col bg-[#F8F8F8] min-w-[467px] min-h-[241px] p-3 rounded-2xl space-y-2 '} key={el.id}>
                                 <div className={'w-full flex justify-between items-center'}>
                                     <span className={"text-[18px]"}>{el.name}</span>
-                                    <div>{grade}</div>
+                                    <div>{gradeRating(el.grade)}</div>
                                 </div>
                                 <div className={'flex justify-between'}>
-                                    <div>
+                                    {/* <div>
                                         <button className={'cursor-pointer'} onClick={() => handleDelete(el.id)}><Trash className='hover:text-red-600 duration-300 transition hover:scale-120' width={20} /></button>
                                         <UpdateRating isName={el.name} isGrade={el.grade} isGradeText={el.gradeText} isId={el.id} />
-                                    </div>
+                                    </div> */}
                                     <span className={'text-[13px]'}>{datePublic(el.createdAt)}</span>
                                 </div>
                                 <div className={'flex justify-between items-start cursor-pointer'}>
-                                    <p className={"w-65"}>{gradeText.length > 150 && gradeText}</p>
+                                    <p className={"w-65"}>{maxLengthText(el.gradeText)}</p>
                                     <div className={"relative w-38 h-25"}>
                                         {el.img.slice(0, 3).map((el, i) => (
                                             <div key={i} className={cn(
@@ -142,7 +149,6 @@ export const Rating = () => {
                                                     "left-0 z-30": i === 0,
                                                     "left-6 z-20": i === 1,
                                                     "left-12 z-10": i === 2,
-                                                    // "hover:z-40 hover:scale-110": true
                                                 }
                                             )}
                                             >
@@ -172,8 +178,16 @@ export const Rating = () => {
                     })}
                 </Swiper>
             </div>
-            <WriteRating />
-
+            {myRating ?
+                <MyRating
+                    isLoading={myRatingLoading}
+                    isError={myRatingError}
+                    isMyRating={myRating.myRating}
+                    isDateMyRating={datePublic}
+                    isHandleDelete={handleDelete}
+                    isMaxLengthText={maxLengthText}
+                />
+                : <WriteRating />}
         </div >
     )
 }
