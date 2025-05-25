@@ -11,11 +11,7 @@ import { Button } from '../ui/button'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 
-interface Props {
-    className?: string
-}
-
-export const Register: React.FC<Props> = ({ className }) => {
+export const Register = () => {
     const router = useRouter()
     const [register] = useRegistrationMutation()
     const [status, setStatus] = useState(false)
@@ -52,7 +48,7 @@ export const Register: React.FC<Props> = ({ className }) => {
     }
 
     return (
-        <div className={className}>
+        <div>
             <Form {...form}>
                 <form className={'bg-[#F8F8F8] rounded-2xl w-120 p-10 border-1 border-[#e3e3ec]'} onSubmit={form.handleSubmit(onSubmit)}>
                     <h1 className={"pb-10 font-medium text-2xl"}>Создайте аккаунт</h1>

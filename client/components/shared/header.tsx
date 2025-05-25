@@ -9,11 +9,7 @@ import { Heart, Menu, ShoppingCart } from 'lucide-react'
 import { Bar } from './bar'
 import { cn } from '@/lib/utils'
 
-interface Props {
-    className?: string
-}
-
-export const Header: React.FC<Props> = ({ }) => {
+export const Header = () => {
 
     const [bar, setBar] = useState(false)
     const [scrollbarWidth, setScrollbarWidth] = useState(0)

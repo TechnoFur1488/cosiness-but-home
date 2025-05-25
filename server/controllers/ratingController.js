@@ -81,18 +81,33 @@ class RatingController {
         }
     }
 
-    async getOneRating(req, res) {
+    async getOneMyRating(req, res) {
         const { productId } = req.params
         const sessionId = req.sessionId
 
         try {
             const myRating = await Rating.findOne({ where: { productId, sessionId } })
 
-            if (!myRating) {
-                return res.status(404).json({ message: "Отзыв не найден" })
+            return res.status(200).json({ myRating })
+        } catch (err) {
+            console.error(err)
+            return res.status(500).json({ message: "Ошибка сервера" })
+        }
+    }
+
+    async getOneRating(req, res) {
+        const { id } = req.params
+
+        try {
+
+            const rating = await Rating.findByPk(id)
+
+            if (!rating) {
+                return res.status(404).json({ message: "Такого рейтинга не существует" })
             }
 
-            return res.status(200).json({ myRating })
+            return res.status(200).json({ rating })
+
         } catch (err) {
             console.error(err)
             return res.status(500).json({ message: "Ошибка сервера" })
@@ -102,20 +117,36 @@ class RatingController {
     async updateRating(req, res) {
 
         const { id } = req.params
-        const { name, grade, gradeText } = req.body
+        const { name, grade, gradeText, existingImg } = req.body
         const files = req.files
         const sessionId = req.sessionId
+        const userId = req.user.id
+
+        if (!id) {
+            await deleteLocalFiles()
+            return res.status(404).json({ message: "Такого рейтинга не существует" })
+        }
+
+        if (req.user.role !== "ADMIN") {
+            await deleteLocalFiles()
+            return res.status(403).json({ message: "Доступа запрещен" })
+        }
 
         try {
+            const existingImages = existingImg ? JSON.parse(existingImg) : []
+            const newFilesCount = files ? files.length : 0
+            const totalImgCount = existingImages.length + newFilesCount
+
+            if (totalImgCount > 10) {
+                await deleteLocalFiles()
+                return res.status(400).json({ message: "Максимум 10 фото" })
+            }
+
             if (files && files.length > 10) {
                 await deleteLocalFiles()
                 return res.status(400).json({ message: "Максимум 10 фото" })
             }
 
-            if (!id) {
-                await deleteLocalFiles()
-                return res.status(404).json({ message: "Такого рейтинга не существует" })
-            }
 
             if (!name || !grade) {
                 await deleteLocalFiles()
@@ -127,32 +158,47 @@ class RatingController {
                 return res.status(400).json({ message: "Оценка должна быть от 1 до 5" })
             }
 
-            let rating = await Rating.findOne({ where: { id, sessionId } })
+            const checkRole = req.user.role === "ADMIN" ? { id } : { id, sessionId }
+
+            let rating = await Rating.findOne({ where: checkRole })
 
             if (!rating) {
                 await deleteLocalFiles()
                 return res.status(404).json({ message: "Вы не можете редактировать этот отзыв или отзыв не найден" })
             }
 
-            let imageUrls = rating.img || []
+            let currentImgUrls = rating.img || []
 
-            if (files.length > 0) {
+            const imgToDelete = currentImgUrls.filter(url => !existingImages.includes(url))
+
+            if (imgToDelete.length > 0) {
                 try {
-
-                    if (imageUrls.length > 0) {
-                        await deleteDriveFiles(imageUrls)
-                    }
-
-                    imageUrls = await postDriveFiles(files, uploadRatingImg)
-
+                    await deleteDriveFiles(imgToDelete)
                 } catch (err) {
-                    console.error("Ошибка загрузки файлов:", err)
                     await deleteLocalFiles()
+                    console.error("Ошибка при удалении файлов:", err)
                     return res.status(500).json({ message: "Ошибка при обновлении изображений" })
                 }
             }
 
-            rating = await Rating.update({ name, grade, gradeText, img: imageUrls }, { where: { id, sessionId } })
+            if (existingImg) {
+                currentImgUrls = existingImages
+            }
+
+            let newImgUrls = []
+            if (files && files.length > 0) {
+                try {
+                    newImgUrls = await postDriveFiles(files, uploadRatingImg)
+                } catch (err) {
+                    console.error("Ошибка загрузки файлов:", err)
+                    await deleteLocalFiles()
+                    return res.status(500).json({ message: "Ошибка при загрузке новых изображений" })
+                }
+            }
+
+            const allImg = [...currentImgUrls, ...newImgUrls]
+
+            await Rating.update({ userId, name, grade, gradeText, img: allImg }, { where: checkRole })
 
             const updateRating = await Rating.findOne({ where: { id } })
 
@@ -172,15 +218,23 @@ class RatingController {
 
         const { id } = req.params
         const sessionId = req.sessionId
+        const userId = req.user.id
+
+        if (!id) {
+            await deleteLocalFiles()
+            return res.status(404).json({ message: "Такого рейтинга не существует" })
+        }
+
+        if (req.user.role !== "ADMIN") {
+            await deleteLocalFiles()
+            return res.status(403).json({ message: "Доступа запрещен" })
+        }
 
         try {
 
-            if (!id) {
-                await deleteLocalFiles()
-                return res.status(404).json({ message: "Такого рейтинга не существует" })
-            }
+            const checkRole = req.user.role === "ADMIN" ? { id } : { id, sessionId }
 
-            const rating = await Rating.findOne({ where: { id, sessionId } })
+            const rating = await Rating.findOne({ where: checkRole })
 
             if (!rating) {
                 await deleteLocalFiles()
@@ -192,7 +246,7 @@ class RatingController {
                 deleteLocalFiles()
             ])
 
-            await rating.destroy()
+            await rating.destroy({ userId })
 
             return res.status(200).json({ message: "Рейтинг успешно удален" })
         } catch (err) {

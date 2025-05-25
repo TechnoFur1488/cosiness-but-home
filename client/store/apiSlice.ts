@@ -14,6 +14,7 @@ interface Products {
     description: string
     from: string
     catalogId: number
+    existingImg: string[]
 }
 
 interface Rating {
@@ -21,7 +22,7 @@ interface Rating {
     name: string
     grade: number
     gradeText: string
-    img: Array<string>
+    img: string[]
     productId: number
     createdAt: string
 }
@@ -186,8 +187,8 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ["User"]
         }),
-        // myCookie:builder.query<
 
+        
         getRating: builder.query<{ rating: Rating[] }, number>({
             query: (productId) => `/api/rating/${productId}`,
             providesTags: ["Rating"]
@@ -197,6 +198,10 @@ export const apiSlice = createApi({
                 url: `/api/rating/${productId}/my-rating`,
                 credentials: "include"  
             }),
+            providesTags: ["Rating"]
+        }),
+        getOneRating: builder.query<{rating: Rating}, number>({
+            query: (id) => `/api/rating/one-rating/${id}`,
             providesTags: ["Rating"]
         }),
         postRating: builder.mutation<PostRating, FormData>({
@@ -332,6 +337,7 @@ export const {
 
     usePostRatingMutation,
     useGetMyRatingQuery,
+    useGetOneRatingQuery,
     useGetRatingQuery,
     useDeleteRatingMutation,
     useUpdateRatingMutation,

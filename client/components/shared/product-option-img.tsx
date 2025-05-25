@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import 'swiper/css';
 import 'swiper/css/free-mode';
@@ -19,12 +19,35 @@ interface Props {
     isEdit: boolean
     editImage: File[]
     setEditImage: React.Dispatch<React.SetStateAction<File[]>>
+    isExistingImages: string[]
+    isSetExistingImages: React.Dispatch<React.SetStateAction<string[]>>
 }
 
-export const ProductOptionImg = ({ isImg, isEdit, editImage, setEditImage }: Props) => {
+export const ProductOptionImg = ({ isImg, isEdit, editImage, setEditImage, isExistingImages, isSetExistingImages }: Props) => {
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
     const [bigImg, setBigImg] = useState(false)
     const [previewUrls, setPreviewUrls] = useState<string[]>([])
+
+    useEffect(() => {
+        isSetExistingImages(isImg)
+    }, [isSetExistingImages, isImg])
+
+    useEffect(() => {
+        return () => {
+            if (thumbsSwiper && !thumbsSwiper.destroyed) {
+                thumbsSwiper.destroy();
+            }
+        };
+    }, [thumbsSwiper])
+
+    const handleRemoveExistingImage = (index: number) => {
+        isSetExistingImages(prev => {
+            const newImg = [...prev]
+            newImg.splice(index, 1)
+            return newImg
+        })
+
+    }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -55,6 +78,17 @@ export const ProductOptionImg = ({ isImg, isEdit, editImage, setEditImage }: Pro
             {isEdit
                 ?
                 <>
+                    <div className={"grid grid-cols-3 gap-x-5 gap-y-10 my-5"}>
+                        {isExistingImages.map((el: string, i: number) => (
+                            <div key={i} className={"flex w-30 relative"}>
+                                <Image className={"object-cover rounded-2xl min-h-[190px] max-h-[190px]"} src={el} alt="asd" width={120} height={190} />
+                                <button onClick={() => handleRemoveExistingImage(i)} className={"cursor-pointer absolute right-1 top-1"}>
+                                    <Trash2 color='black' fill='currentColor' className={'hover:text-red-600 duration-300 transition hover:scale-120 text-[#E5E5EA]'} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                    <span>Добавить фото</span>
                     <Input type='file' multiple onChange={handleFileChange} accept="image/*,.png,.jpg,.web" />
                     <div className={"grid grid-cols-3 gap-x-5 gap-y-10 my-5"}>
                         {previewUrls.map((el: string, i: number) => (
@@ -93,7 +127,7 @@ export const ProductOptionImg = ({ isImg, isEdit, editImage, setEditImage }: Pro
                         className={"flex justify-between items-center mt-5 h-[122px]"}
                         onSwiper={(swiper) => {
                             if (swiper && !swiper.destroyed) {
-                                setThumbsSwiper(swiper);
+                                setThumbsSwiper(swiper)
                             }
                         }}
                         spaceBetween={10}

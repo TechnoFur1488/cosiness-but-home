@@ -13,7 +13,7 @@ interface Props {
     isImg: string[]
 }
 
-export const ProductImg: React.FC<Props> = ({ isImg, className }) => {
+export const ProductImg = ({ isImg, className }: Props) => {
     return (
         <div className={cn("relative w-[345px] h-[430px]", className)}>
             <Image src={isImg[0]} alt="Main product image" fill className={"object-cover rounded-2xl hover:opacity-0 relative z-20"} sizes="(max-width: 768px) 100vw, 345px" priority />

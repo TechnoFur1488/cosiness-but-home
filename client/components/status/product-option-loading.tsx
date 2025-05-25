@@ -14,7 +14,7 @@ export const ProductOptionLoading = () => {
             </div>
             <div className={"w-[467px] flex flex-col justify-between"}>
                 <Skeleton className={"w-full h-15 rounded-2xl bg-[#E5E5EA]"} />
-                <Skeleton className={"w-full h-17 rounded-2xl bg-[#E5E5EA] my-2.5"} />
+                <Skeleton className={"w-full h-12 rounded-2xl bg-[#E5E5EA] my-2.5"} />
                 <div className={"flex flex-col h-40 justify-between"}>
                     <Skeleton className={"w-[70%] h-6 rounded-2xl bg-[#E5E5EA]"} />
                     <Skeleton className={"w-[70%] h-6 rounded-2xl bg-[#E5E5EA]"} />
@@ -22,9 +22,9 @@ export const ProductOptionLoading = () => {
                     <Skeleton className={"w-[70%] h-6 rounded-2xl bg-[#E5E5EA]"} />
                     <Skeleton className={"w-[70%] h-6 rounded-2xl bg-[#E5E5EA]"} />
                 </div>
-                <Skeleton className={"w-full h-17 rounded-2xl my-2.5 bg-[#E5E5EA]"} />
-                <Skeleton className={"w-full h-17 rounded-2xl bg-[#E5E5EA]"} />
-                <Skeleton className={"w-full h-17 rounded-2xl bg-[#E5E5EA]"} />
+                <Skeleton className={"w-full h-12 rounded-2xl my-2.5 bg-[#E5E5EA]"} />
+                <Skeleton className={"w-full h-9 rounded-2xl bg-[#E5E5EA]"} />
+                <Skeleton className={"w-full h-12 rounded-2xl bg-[#E5E5EA]"} />
                 <Skeleton className={"w-full h-18 rounded-2xl my-2.5 bg-[#E5E5EA]"} />
             </div>
             <Skeleton className={"h-[195px] rounded-2xl"}>

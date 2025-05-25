@@ -4,7 +4,7 @@ interface Props {
     className?: string
 }
 
-export const PersonalData: React.FC<Props> = ({ className }) => {
+export const PersonalData = () => {
     return (
         <div className={"text-justify my-20"}>
             <h1 className='text-3xl font-medium'>Политика в отношении обработки персональных данных</h1>

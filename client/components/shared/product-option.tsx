@@ -26,6 +26,8 @@ export const ProductOption = () => {
     const [discount, setDiscount] = useState(0)
     const [from, setFrom] = useState("")
     const [image, setImage] = useState<File[]>([])
+    const [existingImages, setExistingImages] = useState<string[]>([])
+    const [catalogId, setCatalogId] = useState("")
 
     if (isLoading) return <ProductOptionLoading />
     if (isError) return <div>Error</div>
@@ -49,6 +51,8 @@ export const ProductOption = () => {
         setDiscount(product.discount)
 
         setEdit(true)
+
+        setCatalogId(String(product.catalogId))
     }
 
     return (
@@ -70,12 +74,16 @@ export const ProductOption = () => {
                     isImage={image}
                     isIdProduct={productId}
                     isFrom={from}
+                    isExistingImages={existingImages}
+                    isCatalogId={catalogId}
                 />
                 <ProductOptionImg
                     isImg={product.img || []}
                     isEdit={edit}
                     editImage={image}
                     setEditImage={setImage}
+                    isExistingImages={existingImages}
+                    isSetExistingImages={setExistingImages}
                 />
             </div>
             <ProductInformation
@@ -129,6 +137,9 @@ export const ProductOption = () => {
 
                 editDiscount={discount}
                 setEditDiscount={setDiscount}
+
+                editCatalogId={catalogId}
+                setEditCatalogId={setCatalogId}
             />
         </div>
     )

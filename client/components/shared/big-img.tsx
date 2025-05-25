@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 import { X } from 'lucide-react'
-import React, { useEffect } from 'react'
+import { HiddenScrol } from '../utils/hidden-scrol'
 
 interface Props {
     className?: string
@@ -10,24 +10,9 @@ interface Props {
 }
 
 
-export const BigImg: React.FC<Props> = ({ children, className, isBigImg, isSetBigImg }) => {
+export const BigImg = ({ children, className, isBigImg, isSetBigImg }: Props) => {
 
-    useEffect(() => {
-        if (isBigImg) {
-            const width = window.innerWidth - document.documentElement.clientWidth
-
-            document.body.style.overflow = "hidden"
-            document.body.style.paddingRight = `${width}px`
-        } else {
-            document.body.style.overflow = "auto"
-            document.body.style.paddingRight = ""
-        }
-
-        return () => {
-            document.body.style.overflow = "auto"
-            document.body.style.paddingRight = ""
-        }
-    }, [isBigImg])
+    HiddenScrol(isBigImg)
 
     return (
         <div className={cn("", className)} >

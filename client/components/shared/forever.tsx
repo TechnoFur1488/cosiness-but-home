@@ -30,7 +30,7 @@ interface Forever {
     }
 }
 
-export const Forever: React.FC<Props> = ({ className }) => {
+export const Forever = ({ className }: Props) => {
     const { data, isLoading, isError } = useGetForeverQuery()
     const [deleteForever] = useDeleteForeverMutation()
 

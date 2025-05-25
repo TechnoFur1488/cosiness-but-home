@@ -14,7 +14,7 @@ interface Catalog {
     name: string
 }
 
-export const Bar: React.FC<Props> = ({ className, isOpen, isSetBar }) => {
+export const Bar = ({ className, isOpen, isSetBar }: Props) => {
 
     const { data, isLoading, isError } = useGetCatalogQuery()
 

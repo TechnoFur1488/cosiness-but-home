@@ -1,20 +1,23 @@
 "use client"
 
 import { useDeleteRatingMutation, useGetMyRatingQuery, useGetRatingQuery } from '@/store/apiSlice'
-import { Star, Trash } from 'lucide-react'
+import { MoveRight, Trash2 } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
-
-import 'swiper/css';
-import 'swiper/css/navigation';
-
 import { Navigation } from 'swiper/modules';
 import { WriteRating } from './write-rating'
 import Image from 'next/image'
-import { UpdateRating } from './update-rating'
 import { cn } from '@/lib/utils'
 import { MyRating } from './my-rating'
+import 'swiper/css';
+import 'swiper/css/navigation';
+import { BigRating } from './big-rating'
+import Link from 'next/link'
+import { GradeRating, DatePost } from '../utils'
+import { useTokenDecryptor } from '../hooks/use-token-decryptor'
+import { UpdateRating } from './update-rating'
+import { RatingLoading } from '../status/rating-loading'
 
 interface Rating {
     id: number
@@ -33,10 +36,14 @@ export const Rating = () => {
     const [deleteRating] = useDeleteRatingMutation()
     const [bigRating, setBigRating] = useState(false)
     const { data: myRating, isLoading: myRatingLoading, isError: myRatingError } = useGetMyRatingQuery(Number(productId))
+    const [ratingId, setRatingId] = useState<number>(0)
+    const role = useTokenDecryptor()
 
-    if (isLoading) return <h1>Загрузка</h1>
+    const rating = data?.rating
+
+    if (isLoading) return <RatingLoading />
     if (isError) return <h1>Ошибка</h1>
-    if (!data) return <h1>ОТзывов нету</h1>
+    if (!data) return <h1>Отзывов нету</h1>
 
     const handleDelete = async (id: number) => {
         try {
@@ -46,148 +53,93 @@ export const Rating = () => {
         }
     }
 
-    const datePublic = (component: string) => {
-        let options: Intl.DateTimeFormatOptions = {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        }
-        return new Date(component).toLocaleString("ru-RU", options)
-    }
-
     const maxLengthText = (text: string) => {
         if (text?.length > 120) {
             return text.slice(0, 120) + '...'
-        }
-    }
-
-    const gradeRating = (grade: number) => {
-        if (grade === 5) {
-            return (
-                <div className='flex'>
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-yellow-400' fill='currentColor' />
-                </div>
-            )
-        } else if (grade === 4) {
-            return (
-                <div className='flex'>
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-gray-300' fill='currentColor' />
-                </div>
-            )
-        } else if (grade === 3) {
-            return (
-                <div className='flex'>
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-gray-300' fill='currentColor' />
-                    <Star className='text-gray-300' fill='currentColor' />
-                </div>
-            )
-        } else if (grade === 2) {
-            return (
-                <div className='flex'>
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-gray-300' fill='currentColor' />
-                    <Star className='text-gray-300' fill='currentColor' />
-                    <Star className='text-gray-300' fill='currentColor' />
-                </div>
-            )
-        } else if (grade === 1) {
-            return (
-                <div className='flex'>
-                    <Star className='text-yellow-400' fill='currentColor' />
-                    <Star className='text-gray-300' fill='currentColor' />
-                    <Star className='text-gray-300' fill='currentColor' />
-                    <Star className='text-gray-300' fill='currentColor' />
-                    <Star className='text-gray-300' fill='currentColor' />
-                </div>
-            )
+        } else {
+            return text
         }
     }
 
     const averageRating = data.rating.reduce((sum, el) => sum + el.grade, 0) / data.rating.length
-    return (
-        <div className={"mt-20"}>
-            {averageRating ? <span className={"font-medium text-[20px]"}>Средний рейтинг: {averageRating.toFixed(1)}</span> : <span className={"font-medium text-[20px]"}>Отзывов пока что нет</span>}
-            <div className='flex justify-between py-3'>
-                <Swiper style={{
-                    '--swiper-navigation-color': 'black'
-                }} navigation={true} modules={[Navigation]} slidesPerView={3} spaceBetween={10}>
-                    {data?.rating?.map((el: Rating) => {
 
-                        return (
-                            <SwiperSlide className={'flex flex-col bg-[#F8F8F8] min-w-[467px] min-h-[241px] p-3 rounded-2xl space-y-2 '} key={el.id}>
-                                <div className={'w-full flex justify-between items-center'}>
-                                    <span className={"text-[18px]"}>{el.name}</span>
-                                    <div>{gradeRating(el.grade)}</div>
-                                </div>
-                                <div className={'flex justify-between'}>
-                                    {/* <div>
-                                        <button className={'cursor-pointer'} onClick={() => handleDelete(el.id)}><Trash className='hover:text-red-600 duration-300 transition hover:scale-120' width={20} /></button>
-                                        <UpdateRating isName={el.name} isGrade={el.grade} isGradeText={el.gradeText} isId={el.id} />
-                                    </div> */}
-                                    <span className={'text-[13px]'}>{datePublic(el.createdAt)}</span>
-                                </div>
-                                <div className={'flex justify-between items-start cursor-pointer'}>
-                                    <p className={"w-65"}>{maxLengthText(el.gradeText)}</p>
-                                    <div className={"relative w-38 h-25"}>
-                                        {el.img.slice(0, 3).map((el, i) => (
-                                            <div key={i} className={cn(
-                                                "absolute top-0 w-[110px] h-[150px] rounded-md border-2 border-white transition-all",
-                                                "shadow-md overflow-hidden",
-                                                {
-                                                    "left-0 z-30": i === 0,
-                                                    "left-6 z-20": i === 1,
-                                                    "left-12 z-10": i === 2,
-                                                }
-                                            )}
-                                            >
-                                                <Image src={el} alt={el} fill sizes={"(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"} />
-                                            </div>
-                                        ))}
+    return (
+        <>
+            {bigRating &&
+                <div className={cn("fixed inset-0 z-50 flex items-center justify-center")}>
+                    <div className={"absolute inset-0 bg-black opacity-50"} onClick={() => setBigRating(false)} />
+                    <BigRating isBigRating={bigRating} isSetBigRating={setBigRating} ratingId={ratingId} />
+                </div>
+            }
+            <div className={"mt-20"}>
+                {averageRating ? <span className={"font-medium text-[20px]"}>Средний рейтинг: {averageRating.toFixed(1)}</span> : <span className={"font-medium text-[20px]"}>Отзывов пока что нет</span>}
+                <div className='flex justify-between py-3'>
+                    <Swiper style={{
+                        '--swiper-navigation-color': 'black'
+                    } as React.CSSProperties} navigation={true} modules={[Navigation]} slidesPerView={3} spaceBetween={10}>
+                        {rating?.slice(0, 12).map((el: Rating) => {
+
+                            return (
+                                <SwiperSlide className={'flex flex-col bg-[#F8F8F8] min-w-[467px] min-h-[241px] p-3 rounded-2xl space-y-2 '} key={el.id}>
+                                    <div className={'w-full flex justify-between items-center'}>
+                                        <span className={"text-[18px]"}>{el.name}</span>
+                                        <div>{GradeRating(el.grade)}</div>
                                     </div>
-                                </div>
-                                {/* <p>{gradeText.length > 150 && gradeText}</p> */}
-                                {/* <p className={'w-[80%] text-[15px]'}> */}
-                                {/* {el.gradeText} */}
-                                {/* {gradeText?.length > 150 && (
-                                                    { el.gradeText }
-                                                )} */}
-                                {/* </p> */}
-                                {/* <Swiper modules={[Navigation]} className={'min-w-30 h-35 flex justify-center rounded-2xl'} slidesPerView={1} spaceBetween={10}>
-                                            {el.img.map((el, i) => (
-                                                <SwiperSlide key={i}>
-                                                    <div className="relative z-10 w-full h-full">
-                                                        <Image src={el} className={'rounded-2xl'} fill sizes="(max-width: 768px) 100vw, 345px" alt='Фото отзыва' />
-                                                    </div>
-                                                </SwiperSlide>
+                                    <div className={'flex justify-between'}>
+                                        {role === "ADMIN" ?
+                                            <div>
+                                                <button className={"cursor-pointer"} onClick={() => handleDelete(el.id)}>
+                                                    <Trash2 className='hover:text-red-600 duration-300 transition hover:scale-120' width={20} />
+                                                </button>
+                                                <UpdateRating isImg={el.img} isName={el.name} isGrade={el.grade} isGradeText={el.gradeText} isId={el.id} />
+                                            </div>
+                                            : null
+                                        }
+                                        <span className={'text-[13px]'}>{DatePost(el.createdAt)}</span>
+                                    </div>
+                                    <div onClick={() => {
+                                        if (el.gradeText?.length > 0 || el.img?.length > 0) {
+                                            setBigRating(true), setRatingId(el.id)
+                                        }
+                                    }} className={cn('flex justify-between items-start h-36.5 cursor-auto', el.gradeText?.length > 0 || el.img?.length > 0 ? "cursor-pointer" : "cursor-default")}>
+                                        <p className={"w-65"}>{maxLengthText(el.gradeText)}</p>
+                                        <div className={"relative w-38"}>
+                                            {el.img.slice(0, 3).map((el, i) => (
+                                                <div key={i} className={cn(
+                                                    "absolute top-0 w-[110px] h-[150px] rounded-md border-2 border-white transition-all",
+                                                    "shadow-md overflow-hidden",
+                                                    {
+                                                        "left-0 z-30": i === 0,
+                                                        "left-6 z-20": i === 1,
+                                                        "left-12 z-10": i === 2,
+                                                    }
+                                                )}
+                                                >
+                                                    <Image src={el} alt={el} fill sizes={"(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"} />
+                                                </div>
                                             ))}
-                                        </Swiper> */}
-                            </SwiperSlide>
-                        )
-                    })}
-                </Swiper>
-            </div>
-            {myRating ?
-                <MyRating
-                    isLoading={myRatingLoading}
-                    isError={myRatingError}
-                    isMyRating={myRating.myRating}
-                    isDateMyRating={datePublic}
-                    isHandleDelete={handleDelete}
-                    isMaxLengthText={maxLengthText}
-                />
-                : <WriteRating />}
-        </div >
+                                        </div>
+                                    </div>
+                                </SwiperSlide>
+                            )
+                        })}
+                        <SwiperSlide className={"min-w-[467px] min-h-[241px] bg-[#F8F8F8] rounded-2xl"}>
+                            <Link className={'w-full h-full flex items-center flex-col justify-center text-[18px]'} href={"/"}>Читать все отзывы <MoveRight /></Link>
+                        </SwiperSlide>
+                    </Swiper>
+                </div>
+                {myRating?.myRating ?
+                    <MyRating
+                        isLoading={myRatingLoading}
+                        isError={myRatingError}
+                        isMyRating={myRating.myRating}
+                        isSetRatingId={setRatingId}
+                        isHandleDelete={handleDelete}
+                        isMaxLengthText={maxLengthText}
+                        isSetBigRating={setBigRating}
+                    />
+                    : <WriteRating />}
+            </div >
+        </>
     )
 }

@@ -1,11 +1,11 @@
 import { cn } from '@/lib/utils'
-import React from 'react'
+import React, { PropsWithChildren } from 'react'
 
 interface Props {
     className?: string
 }
 
-export const Container: React.FC<React.PropsWithChildren<Props>> = ({ className, children }) => {
+export const Container = ({ className, children }: PropsWithChildren<Props>) => {
     return (
         <div className={cn("max-w-[1440px] m-auto", className)}>
             {children}

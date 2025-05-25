@@ -3,32 +3,16 @@
 import { cn } from '@/lib/utils'
 import { useDeleteProductMutation, useLazyGetProductsQuery } from '@/store/apiSlice'
 import { Trash2 } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { useTokenDecryptor } from '../hooks/use-token-decryptor'
 
 interface Props {
     isId: number
 }
 
-export const DeleteProductBtn: React.FC<Props> = ({ isId }) => {
-    const [role, setRole] = useState<string | null>(null)
+export const DeleteProductBtn = ({ isId }: Props) => {
     const [deleteProduct] = useDeleteProductMutation()
     const [triggerGetProducts] = useLazyGetProductsQuery()
-
-    useEffect(() => {
-        const token = localStorage.getItem("token")
-
-        if (token) {
-            try {
-                const tokenParts = token.split(".")
-                const decodedPayload = JSON.parse(atob(tokenParts[1]).replace(/-/g, "+").replace(/_/g, "/"))
-
-                const userRole = decodedPayload.role
-                setRole(userRole)
-            } catch (err) {
-                console.error(err)
-            }
-        }
-    }, [])
+    const role = useTokenDecryptor()
 
     const handleClickDeleteProduct = async (id: number) => {
         try {

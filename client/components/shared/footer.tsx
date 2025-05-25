@@ -1,13 +1,10 @@
 "use client"
 
-import React, { useCallback, useEffect, } from 'react'
+import { useCallback, useEffect, } from 'react'
 import { Container } from './container'
 import Link from 'next/link'
 import Image from 'next/image'
 
-interface Props {
-    className?: string
-}
 
 declare global {
     interface Window {
@@ -15,7 +12,7 @@ declare global {
     }
 }
 
-export const Footer: React.FC<Props> = ({ }) => {
+export const Footer = () => {
 
     const initMap = useCallback(() => {
         window.ymaps.ready(() => {

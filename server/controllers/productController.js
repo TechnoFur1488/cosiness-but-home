@@ -54,7 +54,7 @@ class ProductController {
             })
 
             const product = await Product.create({ userId, img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizes.map(s => s.size), description, from, catalogId })
- 
+
             await deleteLocalFiles()
 
             return res.status(201).json({ product, message: "Товар успешно создан" })
@@ -163,7 +163,7 @@ class ProductController {
     async updateProduct(req, res) {
 
         const { id } = req.params
-        const { name, price, discount, compound, warp, hight, hardness, size, description, from, catalogId } = req.body
+        const { name, price, discount, compound, warp, hight, hardness, size, description, from, catalogId, existingImg } = req.body
         const files = req.files
         const userId = req.user.id
 
@@ -173,6 +173,16 @@ class ProductController {
         }
 
         try {
+
+            const existingImages = existingImg ? JSON.parse(existingImg) : []
+            const newFilesCount = files ? files.length : 0
+            const totalImgCount = existingImages.length + newFilesCount
+
+            if (totalImgCount > 10) {
+                await deleteLocalFiles()
+                return res.status(400).json({ message: "Максимум 10 фото" })
+            }
+
             let product = await Product.findByPk(id)
 
             if (!id) {
@@ -180,12 +190,12 @@ class ProductController {
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
-            if (!files || files.length === 0) {
+            if ((!existingImages || existingImages.length === 0) && (!files || files.length === 0)) {
                 await deleteLocalFiles()
                 return res.status(401).json({ message: "Не все поля заполнены" })
             }
 
-            if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description) {
+            if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description || !catalogId) {
                 await deleteLocalFiles()
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
@@ -195,30 +205,43 @@ class ProductController {
                 return res.status(406).json({ message: "Описание не может быть меньше чем 100 симолов" })
             }
 
-            let imageUrls = product.img || []
+            let imageUrls = product.img
 
-            if (files?.length > 0) {
+            const imgToDelete = imageUrls.filter(url => !existingImages.includes(url))
+
+            if (imgToDelete.length > 0) {
                 try {
-
-                    if (imageUrls.length > 0) {
-                        await deleteDriveFiles(imageUrls)
-                    }
-
-                    imageUrls = await postDriveFiles(files, uploadProductImg)
-
+                    await deleteDriveFiles(imageUrls)
                 } catch (err) {
-                    console.error("Ошибка загрузки файлов:", err)
+                    console.error("Ошибка при удалении файлов:", err)
                     await deleteLocalFiles()
                     return res.status(500).json({ message: "Ошибка при обновлении изображений" })
                 }
             }
 
+            if (existingImg) {
+                imageUrls = existingImages
+            }
+
+            let newImgUrls = []
+            if (files && files.length > 0) {
+                try {
+                    newImgUrls = await postDriveFiles(files, uploadProductImg)
+                } catch (err) {
+                    console.error("Ошибка загрузки файлов:", err)
+                    await deleteLocalFiles()
+                    return res.status(500).json({ message: "Ошибка при загрузке новых изображений" })
+                }
+            }
+
+            const allImg = [...imageUrls, ...newImgUrls]
+
             const sizeArray = typeof size === "string" ? size.split(" ") : Array.isArray(size) ? size : []
 
-            product = await Product.update({ userId, img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizeArray, description, from, catalogId }, { where: { id } })
+            product = await Product.update({ userId, img: allImg, name, price, discount, compound, warp, hight, hardness, size: sizeArray, description, from, catalogId }, { where: { id } })
 
             const productUpdate = await Product.findOne({ where: { id } })
-            
+
             await deleteLocalFiles()
 
             return res.status(200).json({ productUpdate, message: "Товар успешно обновлен" })

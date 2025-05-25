@@ -1,8 +1,8 @@
 import { Pencil } from "lucide-react"
-import React, { useEffect, useState } from "react"
 import { Button } from "../ui/button"
 import { useUpdateProductMutation } from "@/store/apiSlice"
 import { ParamValue } from "next/dist/server/request/params"
+import { useTokenDecryptor } from "../hooks/use-token-decryptor"
 
 interface Props {
     isIdProduct: ParamValue
@@ -20,6 +20,8 @@ interface Props {
     isDiscount: number
     isImage: File[]
     isFrom: string
+    isExistingImages: string[] | undefined
+    isCatalogId: string
 }
 
 export const UpdateProduct = ({
@@ -37,31 +39,18 @@ export const UpdateProduct = ({
     isPrice,
     isDiscount,
     isImage,
-    isFrom
+    isFrom,
+    isExistingImages,
+    isCatalogId
 }: Props) => {
-    const [role, setRole] = useState<string | null>(null)
     const [updateProductOption] = useUpdateProductMutation()
-
-    useEffect(() => {
-        const token = localStorage.getItem("token")
-
-        if (token) {
-            try {
-                const tokenParts = token.split(".")
-                const decodedPayload = JSON.parse(atob(tokenParts[1]).replace(/-/g, "+").replace(/_/g, "/"))
-
-                const userRole = decodedPayload.role
-                setRole(userRole)
-            } catch (err) {
-                console.error('Ошибка декодирования токена:', err)
-            }
-        }
-    }, [])
+    const role = useTokenDecryptor()
 
     const handleClickUpdateProductOption = async (id: ParamValue) => {
         const formData = new FormData()
 
         formData.append("id", String(id))
+        formData.append("existingImg", JSON.stringify(isExistingImages))
         isImage.forEach((file) => {
             formData.append("img", file)
         })
@@ -75,6 +64,7 @@ export const UpdateProduct = ({
         formData.append("size", isSize)
         formData.append("description", isDescription)
         formData.append("from", isFrom)
+        formData.append("catalogId", isCatalogId)
 
         try {
             await updateProductOption(formData).unwrap()

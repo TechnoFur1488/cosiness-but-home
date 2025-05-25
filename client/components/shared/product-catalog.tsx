@@ -3,13 +3,9 @@
 import { useDeleteForeverMutation, useGetForeverQuery, useLazyGetProductsCatalogQuery, usePostForeverMutation } from '@/store/apiSlice'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ProductImg } from './product-img'
 import { Heart } from 'lucide-react'
-
-interface Props {
-    className?: string
-}
 
 interface Products {
     id: number
@@ -19,7 +15,7 @@ interface Products {
     discount: number
 }
 
-export const ProductCatalog: React.FC<Props> = ({ }) => {
+export const ProductCatalog = () => {
     const router = useParams()
     const catalogId = Number(router.catalogId)
     const [trigger, { data, isLoading, isError, isFetching }] = useLazyGetProductsCatalogQuery()

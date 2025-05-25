@@ -15,6 +15,10 @@ class UserController {
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
 
+            if(password.length < 8) {
+                return res.status(400).json({ message: "Пароль должен содержать не менее 8 символов" })
+            }
+
             const candidat = await User.findOne({ where: { email } })
 
             if (candidat) {

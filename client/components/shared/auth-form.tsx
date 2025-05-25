@@ -5,18 +5,13 @@ import { Login } from './login'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Register } from './register'
 import type { Swiper as SwiperType } from "swiper"
-
 import 'swiper/css'
 import 'swiper/css/thumbs';
-
 import { Thumbs } from 'swiper/modules'
 import { cn } from '@/lib/utils'
 
-interface Props {
-    className?: string
-}
 
-export const AuthForm: React.FC<Props> = ({ className }) => {
+export const AuthForm = () => {
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null)
     const [status, setStatus] = useState(false)
 

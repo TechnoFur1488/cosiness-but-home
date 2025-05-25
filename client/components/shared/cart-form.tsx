@@ -25,7 +25,7 @@ interface Props {
     isTotal: Array<number>
 }
 
-export const CartForm: React.FC<Props> = ({ className, isTotal }) => {
+export const CartForm = ({ className, isTotal }: Props) => {
     const [postOrder] = usePostOrderMutation()
 
     const formSchema = z.object({
