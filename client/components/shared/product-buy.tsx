@@ -24,8 +24,8 @@ interface Props {
     editDiscount: number
     setEditDiscount: React.Dispatch<React.SetStateAction<number>>
 
-    setEditCatalogId: React.Dispatch<React.SetStateAction<string>>
-    editCatalogId: string
+    setEditCatalogId: React.Dispatch<React.SetStateAction<number>>
+    editCatalogId: number
 }
 
 const priceOfSize = (priceProduct: number, sizeProduct: string) => {
@@ -71,10 +71,10 @@ export const ProductBuy = ({ isPrice, editCatalogId, setEditCatalogId, isProduct
     }
 
     console.log(editCatalogId);
-    
+
     return (
         <>
-            <div className={"bg-[#F8F8F8] w-[345px] h-[195px] rounded-2xl"}>
+            <div className={"bg-[#F8F8F8] w-[345px] h-[195px] rounded-2xl sticky top-7"}>
                 <div className='flex flex-col justify-between items-start w-[313px] h-full py-[27px] m-auto'>
                     <div className='flex items-center'>
                         {isEdit
@@ -97,7 +97,13 @@ export const ProductBuy = ({ isPrice, editCatalogId, setEditCatalogId, isProduct
                         :
                         <Button disabled={!isSelectedSize} onClick={() => { handleClickAddCart(), setCartStatus(true) }} className={"bg-[#E5E5EA] text-[#6E6E73] rounded-2xl w-[313px] h-[39px] cursor-pointer hover:bg-[#DBDBDB] transition duration-150"}>В корзину</Button>}
                 </div>
-                {isEdit && <ProductSelectCatalog editCatalogId={editCatalogId}  dataCatalog={data?.catalogs} setEditCatalogId={setEditCatalogId} />}
+                {isEdit &&
+                    <>  
+                        <span>Каталог товара</span>
+                        <ProductSelectCatalog isLoading={isLoading} isError={isError} editCatalogId={editCatalogId} dataCatalog={data?.catalogs} setEditCatalogId={setEditCatalogId} />
+                    </>
+                }
+
             </div >
         </>
     )

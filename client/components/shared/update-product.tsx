@@ -21,7 +21,7 @@ interface Props {
     isImage: File[]
     isFrom: string
     isExistingImages: string[] | undefined
-    isCatalogId: string
+    isCatalogId: number
 }
 
 export const UpdateProduct = ({
@@ -64,7 +64,7 @@ export const UpdateProduct = ({
         formData.append("size", isSize)
         formData.append("description", isDescription)
         formData.append("from", isFrom)
-        formData.append("catalogId", isCatalogId)
+        formData.append("catalogId", String(isCatalogId))
 
         try {
             await updateProductOption(formData).unwrap()

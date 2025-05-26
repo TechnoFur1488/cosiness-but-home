@@ -1,12 +1,13 @@
 "use client"
 
 import { useDeleteForeverMutation, useGetForeverQuery } from '@/store/apiSlice'
-import React from 'react'
+import React, { useState } from 'react'
 import { Heart } from 'lucide-react'
 import { AddCart } from './add-cart'
 import { ProductImg } from './product-img'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { HiddenScrol } from '../utils'
 
 interface Props {
     className?: string
@@ -31,6 +32,7 @@ interface Forever {
 }
 
 export const Forever = ({ className }: Props) => {
+    const [scroll, setScroll] = useState(false)
     const { data, isLoading, isError } = useGetForeverQuery()
     const [deleteForever] = useDeleteForeverMutation()
 
@@ -42,6 +44,8 @@ export const Forever = ({ className }: Props) => {
             console.error(err)
         }
     }
+
+    HiddenScrol(scroll)
 
     if (isLoading) return <h1>Загрузка...</h1>
     if (isError) return <h1>Ошибка</h1>

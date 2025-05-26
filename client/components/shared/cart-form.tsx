@@ -21,11 +21,10 @@ import Link from 'next/link'
 import { Button } from '../ui/button'
 
 interface Props {
-    className?: string
     isTotal: Array<number>
 }
 
-export const CartForm = ({ className, isTotal }: Props) => {
+export const CartForm = ({ isTotal }: Props) => {
     const [postOrder] = usePostOrderMutation()
 
     const formSchema = z.object({
@@ -68,7 +67,7 @@ export const CartForm = ({ className, isTotal }: Props) => {
     const total: number = isTotal.reduce((sum, num) => sum + num, 0)
 
     return (
-        <div className={className}>
+        <div>
             <span className='text-3xl font-medium text-black'>
                 Итого: {total.toLocaleString("ru-RU", {style: "currency", currency: "RUB", minimumFractionDigits: 0, maximumFractionDigits: 0})}
             </span>

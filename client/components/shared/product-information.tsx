@@ -116,7 +116,7 @@ export const ProductInformation = ({
                     </div>
                     <h2 className={"my-[10px] text-[32px] font-medium"}>Размеры</h2>
                     <div>
-                        <Input type="text" value={editSize} onChange={e => setEditSize(e.target.value)} />
+                        <Textarea value={editSize} onChange={e => setEditSize(e.target.value)} />
                     </div>
                     <h2 className={"py-[10px] text-[32px] font-medium"}>Описание</h2>
                     <p className={"text-[#6E6E73] "}>

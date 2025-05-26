@@ -86,14 +86,13 @@ export const Rating = () => {
                                         <div>{GradeRating(el.grade)}</div>
                                     </div>
                                     <div className={'flex justify-between'}>
-                                        {role === "ADMIN" ?
+                                        {role === "ADMIN" &&
                                             <div>
                                                 <button className={"cursor-pointer"} onClick={() => handleDelete(el.id)}>
                                                     <Trash2 className='hover:text-red-600 duration-300 transition hover:scale-120' width={20} />
                                                 </button>
                                                 <UpdateRating isImg={el.img} isName={el.name} isGrade={el.grade} isGradeText={el.gradeText} isId={el.id} />
                                             </div>
-                                            : null
                                         }
                                         <span className={'text-[13px]'}>{DatePost(el.createdAt)}</span>
                                     </div>

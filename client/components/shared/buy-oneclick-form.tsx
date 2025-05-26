@@ -37,7 +37,7 @@ import { Checkbox } from '../ui/checkbox'
 import Link from 'next/link'
 
 interface Props {
-    isSize: Array<string>
+    isSize: string[]
     isPrice: number
 }
 

@@ -8,15 +8,15 @@ import Link from 'next/link'
 import { Heart, Menu, ShoppingCart } from 'lucide-react'
 import { Bar } from './bar'
 import { cn } from '@/lib/utils'
+import { usePathname } from 'next/navigation'
 
 export const Header = () => {
-
+    const pathname = usePathname()
     const [bar, setBar] = useState(false)
     const [scrollbarWidth, setScrollbarWidth] = useState(0)
 
     useEffect(() => {
         if (bar) {
-
             const width = window.innerWidth - document.documentElement.clientWidth
             setScrollbarWidth(width)
 
@@ -38,7 +38,10 @@ export const Header = () => {
 
     return (
         <>
-            <header className={'py-5 sticky top-0 z-50 bg-white'} style={{ paddingRight: bar ? `${scrollbarWidth}px` : "", marginRight: bar ? `-${scrollbarWidth}px` : "" }}  >
+            <header
+                className={cn("py-5 bg-white z-50", pathname === "/" ? "sticky top-0" : pathname.startsWith("/auth") || pathname.startsWith("/product/") || pathname.startsWith("/cart") || pathname.startsWith("/forever") ? "relative" : "sticky top-0")}
+                style={{ paddingRight: bar ? `${scrollbarWidth}px` : "", marginRight: bar ? `-${scrollbarWidth}px` : "" }}
+            >
                 <Container className='flex items-center justify-between'>
                     <div className='flex justify-between w-[267px]'>
                         <Link href={"/"}>
@@ -59,8 +62,8 @@ export const Header = () => {
                     </div>
                 </Container>
             </header>
-            <div className={cn( "fixed inset-0 z-40 transition-opacity duration-300", bar ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none")}>
-                <div className={"absolute inset-0 bg-black opacity-50"} onClick={() => setBar(false)} /> 
+            <div className={cn("fixed inset-0 z-40 transition-opacity duration-300", bar ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none")}>
+                <div className={"absolute inset-0 bg-black opacity-50"} onClick={() => setBar(false)} />
                 <Bar isSetBar={setBar} isOpen={bar} />
             </div>
         </>

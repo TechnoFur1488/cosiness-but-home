@@ -27,7 +27,7 @@ export const ProductOption = () => {
     const [from, setFrom] = useState("")
     const [image, setImage] = useState<File[]>([])
     const [existingImages, setExistingImages] = useState<string[]>([])
-    const [catalogId, setCatalogId] = useState("")
+    const [catalogId, setCatalogId] = useState(0)
 
     if (isLoading) return <ProductOptionLoading />
     if (isError) return <div>Error</div>
@@ -52,7 +52,7 @@ export const ProductOption = () => {
 
         setEdit(true)
 
-        setCatalogId(String(product.catalogId))
+        setCatalogId(product.catalogId)
     }
 
     return (

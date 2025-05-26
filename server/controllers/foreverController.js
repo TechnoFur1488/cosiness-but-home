@@ -14,9 +14,9 @@ class ForeverController {
 
             const foreverItem = await ForeverProduct.findOne({ where: { foreverId: forever.id, productId } })
 
-            if (foreverItem) {
-                return res.status(400).json({ message: "Товар уже добавлен в избранное" })
-            }
+            // if (foreverItem) {
+            //     return res.status(400).json({ message: "Товар уже добавлен в избранное" })
+            // }
 
             await ForeverProduct.create({ foreverId: forever.id, productId })
 

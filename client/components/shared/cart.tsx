@@ -1,7 +1,6 @@
 "use client"
 
 import { useDeleteCartMutation, useGetCartQuery } from '@/store/apiSlice'
-import { useState } from 'react'
 import Image from 'next/image'
 import { Heart, Minus, Plus, Trash2 } from 'lucide-react'
 import { Swiper, SwiperSlide } from "swiper/react";
