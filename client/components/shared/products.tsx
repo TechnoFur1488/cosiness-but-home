@@ -1,7 +1,7 @@
 "use client"
 
-import { useDeleteForeverMutation, useGetForeverQuery, useLazyGetProductsQuery, usePostForeverMutation } from '@/store/apiSlice'
-import React, { useEffect, useRef, useState, useMemo } from 'react'
+import { useGetForeverQuery, useLazyGetProductsQuery } from '@/store/apiSlice'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { ProductImg } from './product-img'
 import { AddCart } from './add-cart'
@@ -19,16 +19,27 @@ interface Products {
     size: string[]
 }
 
-export const Products = () => {
+interface ProductsResponse {
+    products: Products[]
+    hasMore: boolean
+    nextOffset: number
+}
+
+interface ProductsProps {
+    initialData: ProductsResponse
+}
+
+export const Products = ({ initialData }: ProductsProps) => {
     const [trigger, { data, isLoading, isError, isFetching }] = useLazyGetProductsQuery()
-    const [allProducts, setAllProducts] = useState<Products[]>([])
+    const [allProducts, setAllProducts] = useState<Products[]>(initialData.products)
     const loaderRef = useRef<HTMLDivElement>(null)
     const { data: forever } = useGetForeverQuery()
-    const [loadingImg, setLoadingImg] = useState(false)
     const [page, setPage] = useState(0)
+    const [isMounted, setIsMounted] = useState(false)
+    const [currentData, setCurrentData] = useState<ProductsResponse>(initialData)
 
     useEffect(() => {
-        trigger(0)
+        setIsMounted(true)
     }, [])
 
     useEffect(() => {
@@ -39,17 +50,20 @@ export const Products = () => {
                 )
                 return [...prev, ...newProducts]
             })
+            setCurrentData(data)
         }
     }, [data])
 
     useEffect(() => {
+        if (!isMounted) return
+
         const observer = new IntersectionObserver(
             entries => {
                 const firstEntry = entries[0]
-                if (firstEntry.isIntersecting && !isFetching && data?.hasMore) {
+                if (firstEntry.isIntersecting && !isFetching && currentData?.hasMore) {
                     const nextPage = page + 1
                     setPage(nextPage)
-                    trigger(data.nextOffset)
+                    trigger(currentData.nextOffset)
                 }
             },
             {
@@ -68,7 +82,7 @@ export const Products = () => {
                 observer.unobserve(currentLoader)
             }
         }
-    }, [data, isFetching, page])
+    }, [currentData, isFetching, page, isMounted])
 
     const productsWithKeys = useMemo(() => {
         return allProducts.map((product, index) => ({
@@ -81,37 +95,58 @@ export const Products = () => {
         return new Set(forever?.foreverItem?.map(i => i.product.id) || new Set())
     }, [forever])
 
-    if (isError) return <div className="text-center py-10">Ошибка загрузки</div>
-    if (isLoading && allProducts.length === 0) return <ProductLoading />
+    if (!isMounted) {
+        return null
+    }
+
+    if (isError) {
+        return (
+            <div className="flex justify-center items-center min-h-[400px]">
+                <div className="text-center py-10 text-red-500">Ошибка загрузки товаров</div>
+            </div>
+        )
+    }
+
+    if (isLoading && allProducts.length === 0) {
+        return (
+            <ProductLoading />
+        )
+    }
 
     return (
         <>
-            <div className={"grid grid-cols-4 gap-x-5 gap-y-10 mt-20"}>
+            <div className={"mb-3"}>
+                <h1 className={"text-[32px] font-bold pb-3"}>Весь ассортимент</h1>
+                <span className={"text-[#737373]"}>Познакомьтесь с нашей тщательно отобранной коллекцией ковров премиум-класса, призванных придать вашему жилому дому пространству комфорт и стиль</span>
+            </div>
+            <div className={"grid grid-cols-5 gap-x-5 gap-y-46"}>
                 {productsWithKeys.map((el) => {
                     return (
-                        <div className={"flex flex-col items-start justify-between relative"} key={el.uniqueKey}>
-                            <Link className={"h-[550px] flex flex-col justify-between"} href={`/product/${el.id}`}>
+                        <div className={"flex flex-col items-start justify-between relative h-72.5"} key={el.uniqueKey}>
+                            <Link className={"flex flex-col justify-between"} href={`/product/${el.id}`}>
                                 <ProductImg isImg={el.img} />
-                                <span className={"py-[13px]"}>{el.name}</span>
-                                <RatingProducts isId={el.id} />
-                                <div className={"py-[9px]"}>
-                                    <span>
-                                        {el.price.toLocaleString("ru-RU", {
-                                            style: "currency",
-                                            currency: "RUB",
-                                            maximumFractionDigits: 0,
-                                            minimumFractionDigits: 0
-                                        })}
-                                    </span>
-                                    {el.discount > 0 && (
-                                        <span className="pl-3 line-through text-[#aaaaaa]">
-                                            {el.discount.toLocaleString("ru-RU", {
+                                <div className={"h-24 my-3 flex justify-between flex-col"}>
+                                    <span>{el.name}</span>
+                                    <div className={"text-[#737373]"}>
+                                        <span>
+                                            {el.price.toLocaleString("ru-RU", {
                                                 style: "currency",
                                                 currency: "RUB",
-                                                maximumFractionDigits: 0
+                                                maximumFractionDigits: 0,
+                                                minimumFractionDigits: 0
                                             })}
                                         </span>
-                                    )}
+                                        {el.discount > 0 && (
+                                            <span className="pl-3 line-through">
+                                                {el.discount.toLocaleString("ru-RU", {
+                                                    style: "currency",
+                                                    currency: "RUB",
+                                                    maximumFractionDigits: 0
+                                                })}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <RatingProducts isId={el.id} />
                                 </div>
                             </Link>
                             <FavoriteProduct
@@ -119,15 +154,18 @@ export const Products = () => {
                                 isFavorite={favorite}
                             />
                             <DeleteProductBtn isId={el.id} />
-                            <AddCart isPrice={el.price} isSize={el.size} isId={el.id} />
+                            <div className="w-full">
+                                <AddCart isPrice={el.price} isSize={el.size} isId={el.id} />
+                            </div>
                         </div>
                     )
                 })}
-
             </div>
             <div ref={loaderRef} className='mb-20'>
-                {isFetching && <ProductLoading />}
-                {!data?.hasMore && <span className="text-gray-400 flex justify-center mt-15">Товаров больше нет</span>}
+                {isFetching && (
+                    <ProductLoading />
+                )}
+                {!currentData?.hasMore && <span className="text-gray-400 flex justify-center mt-15">Товаров больше нет</span>}
             </div>
         </>
     )

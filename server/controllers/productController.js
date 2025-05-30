@@ -68,7 +68,7 @@ class ProductController {
     async getAllProducts(req, res) {
         try {
             const offset = parseInt(req.query.offset) || 0
-            const limit = 12
+            const limit = 15
 
             const { count, rows: products } = await Product.findAndCountAll({ limit, offset, order: [["createdAt", "DESC"]] })
 

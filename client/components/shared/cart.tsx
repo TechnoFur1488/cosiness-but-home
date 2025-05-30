@@ -6,13 +6,14 @@ import { Heart, Minus, Plus, Trash2 } from 'lucide-react'
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { CartForm } from './cart-form'
+import { useEffect } from 'react'
 
 interface Cart {
     id: number
     size: Array<string>
     quantity: number
     total: number
-    productId: number
+    productId: number| null
     product: {
         name: string
         img: Array<string>
@@ -24,10 +25,19 @@ export const Cart = () => {
     const { data, isLoading, isError } = useGetCartQuery()
     const [deleteCart] = useDeleteCartMutation()
 
+    useEffect(() => {
+        if (data?.cartItem) {
+            data.cartItem.forEach((item: Cart) => {
+                if (!item.productId) {
+                    handleDeleteCart(item.id)
+                }
+            })
+        }
+    }, [data])
+
     if (isLoading) return <h1>Загрузка</h1>
     if (isError) return <h1>Ошибка</h1>
-    if (!data) return <h1>Корзина пуста</h1>
-
+    if (!data || !data.cartItem.length) return <h1>Корзина пуста</h1>
 
     const handleDeleteCart = async (id: number) => {
         try {
@@ -38,12 +48,13 @@ export const Cart = () => {
         }
     }
 
-    const total = data.cartItem.map((el) => el.total)
+    const validCartItems = data.cartItem.filter((item: Cart) => item.productId !== null)
+    const total = validCartItems.map((el) => el.total)
 
     return (
         <div className={"flex justify-between"}>
             <div>
-                {data?.cartItem?.map((el: Cart) => {
+                {validCartItems.map((el: Cart) => {
                     // const [quantity, setQuantity] = useState([...el.quantity])
 
                     const altName = el.product.name

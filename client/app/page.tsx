@@ -1,11 +1,9 @@
-import { Container, Products  } from "@/components/shared"
+import { MainPage, Container } from "@/components/shared";
 
-export default function Home() {
-  return (
-    <main>
-      <Container>
-        <Products />
-      </Container>
-    </main>
-  )
+export default function HomePage() {
+    return (
+        <Container className={"my-20 max-w-250"}>
+            <MainPage />
+        </Container>
+    )
 }

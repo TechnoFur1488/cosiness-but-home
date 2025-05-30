@@ -3,7 +3,7 @@ import React from 'react'
 
 
 
-export default function Personal() {
+export default function PersonalPage() {
 
     return (
         <Container>

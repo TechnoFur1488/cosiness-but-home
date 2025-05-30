@@ -82,7 +82,7 @@ export const AddCart = ({ isPrice, isSize, isId }: Props) => {
 
     return (
         <AlertDialog>
-            <AlertDialogTrigger className="w-full bg-[#E5E5E5] rounded-2xl h-[46px] cursor-pointer hover:bg-[#DBDBDB] transition duration-150">В корзину</AlertDialogTrigger>
+            <AlertDialogTrigger className="w-full bg-[#EDEDED] rounded-2xl cursor-pointer h-8 hover:bg-[#DBDBDB] transition duration-150">В корзину</AlertDialogTrigger>
             <AlertDialogContent className='z-[110] border-1 border-[#6E6E73]' >
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>

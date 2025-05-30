@@ -14,7 +14,7 @@ export const Providers = ({ children }: PropsWithChildren) => {
                 <main className="flex-1">
                     {children}
                 </main>
-                <Footer />
+                {/* <Footer /> */}
             </div>
         </Provider>
     )

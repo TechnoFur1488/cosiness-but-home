@@ -83,7 +83,8 @@ const Rating = sequelize.define("rating", {
 
 const Catalog = sequelize.define("catalog", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    name: { type: DataTypes.STRING, allowNull: false, unique: true }
+    name: { type: DataTypes.STRING, allowNull: false, unique: true },
+    img: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: [] },
 })
 
 // User.hasOne(Cart)
@@ -110,7 +111,7 @@ CartProduct.belongsTo(Cart)
 Product.hasOne(CartProduct)
 CartProduct.belongsTo(Product)
 
-Catalog.hasMany(Product)
+Catalog.hasMany(Product, { onDelete: "CASCADE" })
 Product.belongsTo(Catalog)
 
 Product.hasMany(Rating, { onDelete: "CASCADE", foreignKey: 'productId', as: 'Ratings' })

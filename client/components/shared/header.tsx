@@ -1,71 +1,58 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
 import { Container } from './container'
 import { Input } from '../ui/input'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, Menu, ShoppingCart } from 'lucide-react'
-import { Bar } from './bar'
+import { Heart, Search, ShoppingCart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePathname } from 'next/navigation'
 
 export const Header = () => {
     const pathname = usePathname()
-    const [bar, setBar] = useState(false)
-    const [scrollbarWidth, setScrollbarWidth] = useState(0)
-
-    useEffect(() => {
-        if (bar) {
-            const width = window.innerWidth - document.documentElement.clientWidth
-            setScrollbarWidth(width)
-
-            document.body.style.overflow = "hidden"
-            document.body.style.paddingRight = `${width}px`
-            document.body.style.backgroundColor = 'white'
-        } else {
-            document.body.style.overflow = "auto"
-            document.body.style.paddingRight = ""
-            document.body.style.backgroundColor = ''
-        }
-
-        return () => {
-            document.body.style.overflow = "auto"
-            document.body.style.paddingRight = ""
-            document.body.style.backgroundColor = ''
-        }
-    }, [bar])
 
     return (
-        <>
-            <header
-                className={cn("py-5 bg-white z-50", pathname === "/" ? "sticky top-0" : pathname.startsWith("/auth") || pathname.startsWith("/product/") || pathname.startsWith("/cart") || pathname.startsWith("/forever") ? "relative" : "sticky top-0")}
-                style={{ paddingRight: bar ? `${scrollbarWidth}px` : "", marginRight: bar ? `-${scrollbarWidth}px` : "" }}
-            >
-                <Container className='flex items-center justify-between'>
-                    <div className='flex justify-between w-[267px]'>
-                        <Link href={"/"}>
-                            <Image src="/logo.svg" alt="logo" width={141} height={95} />
-                        </Link>
-                        <button onClick={() => setBar(!bar)} className='cursor-pointer'>
-                            <Menu width={37} height={37} fill='currentColor' className='text-[#E5E5EA] hover:text-[#DBDBDB] transition-colors' />
-                        </button>
+        <header className={cn("z-50 bg-[#FAFAFA]", pathname === "/" ? "sticky top-0" : pathname.startsWith("/auth") || pathname.startsWith("/product/") || pathname.startsWith("/cart") || pathname.startsWith("/forever") ? "relative" : "sticky top-0")}>
+            <Container className={"flex justify-between items-center py-5"}>
+                <nav className={"flex justify-between items-center w-120 font-medium"}>
+                    <Link href={"/"}>
+                        <Image src="/logo.svg" alt="logo" width={100} height={95} />
+                    </Link>
+
+                    <Link className={cn("relative inline-block group hover:text-[#007AFF] duration-150", pathname === "/" && "text-[#007AFF]")} href={"/"}>
+                        <span>Главная</span>
+                        <span className={cn("absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full", pathname === "/" && "w-full")} />
+                    </Link>
+
+                    <Link className={cn("relative inline-block group hover:text-[#007AFF] duration-150", pathname === "/shop" && "text-[#007AFF]")} href={"/shop"}>
+                        <span>Магазин</span>
+                        <span className={cn("absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full", pathname === "/shop" && "w-full")} />
+                    </Link>
+
+                    <Link className={cn("relative inline-block group hover:text-[#007AFF] duration-150", pathname === "/contacts" && "text-[#007AFF]")} href={"/contacts"}>
+                        <span>Контакты</span>
+                        <span className={cn("absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full", pathname === "/contacts" && "w-full")} />
+                    </Link>
+
+                    <Link className={cn("relative inline-block group hover:text-[#007AFF] duration-150", (pathname === "/catalog" || pathname.startsWith("/catalog-products")) && "text-[#007AFF]")} href={"/catalog"}>
+                        <span>Каталог</span>
+                        <span className={cn("absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full", (pathname === "/catalog" || pathname.startsWith("/catalog-products")) && "w-full")} />
+                    </Link>
+                </nav>
+                <div className={"flex justify-between items-center w-82"}>
+                    <div className={"relative"}>
+                        <Search width={24} height={24} className={"absolute left-3 top-1/2 -translate-y-1/2 text-[#737373]"} />
+                        <Input type='text' placeholder='Поиск' className={"pl-12 text-black"} />
                     </div>
-                    <Input className='w-177.5 h-[47px] bg-[#E5E5EA] hover:bg-[#DBDBDB] transition-colors' type='text' placeholder='Поиск' />
-                    <div className='flex justify-between w-[191px]'>
-                        <Link href={"/cart"}>
-                            <ShoppingCart fill='currentColor' className='text-[#E5E5EA] hover:text-[#DBDBDB] transition-colors' width={37} height={37} />
-                        </Link>
-                        <Link href={"/forever"}>
-                            <Heart fill='currentColor' className='text-[#E5E5EA] hover:text-[#DBDBDB] transition-colors' width={37} height={37} />
-                        </Link>
-                    </div>
-                </Container>
-            </header>
-            <div className={cn("fixed inset-0 z-40 transition-opacity duration-300", bar ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none")}>
-                <div className={"absolute inset-0 bg-black opacity-50"} onClick={() => setBar(false)} />
-                <Bar isSetBar={setBar} isOpen={bar} />
-            </div>
-        </>
+                    <Link href={"/cart"}>
+                        <ShoppingCart className={"cursor-pointer"} width={24} height={24} />
+                    </Link>
+                    <Link href={"/favorite"}>
+                        <Heart className={"cursor-pointer"} width={24} height={24} />
+                    </Link>
+                </div>
+            </Container>
+            <div className={"bg-[#E5E8EB] h-[1px]"} />
+        </header>
     )
 }

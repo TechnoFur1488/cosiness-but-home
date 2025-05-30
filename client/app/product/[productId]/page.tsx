@@ -3,7 +3,7 @@ import React from 'react'
 
 
 
-export default function Product() {
+export default function ProductPage() {
 
     return (
         <Container className='my-20'>

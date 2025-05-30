@@ -68,6 +68,7 @@ interface Order {
 interface Catalog {
     id: number
     name: string
+    img: string[]
 }
 
 interface PostCart {
@@ -121,10 +122,13 @@ export const apiSlice = createApi({
     reducerPath: "api",
     baseQuery: fetchBaseQuery({
         baseUrl: process.env.NEXT_PUBLIC_APP_API_URL,
-        prepareHeaders: (headers) => {
-            const token = localStorage.getItem("token")
-            if (token) {
-                headers.set("authorization", `Bearer ${token}`)
+        prepareHeaders: (headers, { getState }) => {
+            // В SSR режиме localStorage недоступен
+            if (typeof window !== 'undefined') {
+                const token = localStorage.getItem("token")
+                if (token) {
+                    headers.set("authorization", `Bearer ${token}`)
+                }
             }
             return headers
         }
@@ -140,16 +144,25 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ["Product"]
         }),
-        getProducts: builder.query<ProductsResponse, number | void>({
+        getProducts: builder.query<ProductsResponse, number>({
             query: (offset = 0) => `/api/products?offset=${offset}`,
             providesTags: ["Product"],
-            serializeQueryArgs: ({ endpointName }) => endpointName,
-            merge: (currentCache, newItems) => {
-                currentCache.products.push(...newItems.products)
-                currentCache.hasMore = newItems.hasMore
-                currentCache.nextOffset = newItems.nextOffset
+            serializeQueryArgs: ({ endpointName }) => {
+                return endpointName
             },
-            forceRefetch: ({ currentArg, previousArg }) => currentArg !== previousArg
+            merge: (currentCache, newItems, { arg }) => {
+                if (arg === 0) {
+                    return newItems
+                }
+                return {
+                    products: [...currentCache.products, ...newItems.products],
+                    hasMore: newItems.hasMore,
+                    nextOffset: newItems.nextOffset
+                }
+            },
+            forceRefetch: ({ currentArg, previousArg }) => {
+                return currentArg !== previousArg
+            }
         }),
         updateProduct: builder.mutation<Products, FormData>({
             query: (formData) => ({
