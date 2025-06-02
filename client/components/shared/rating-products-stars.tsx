@@ -1,14 +1,15 @@
 import { useGetRatingQuery } from "@/store/apiSlice"
 import Image from "next/image"
+import { Skeleton } from "../ui/skeleton"
 
 interface Props {
     isId: number
 }
 
-export const RatingProducts = ({ isId }: Props) => {
+export const RatingProductsStars = ({ isId }: Props) => {
     const { data, isLoading, isError } = useGetRatingQuery(isId)
 
-    if (isLoading) return <h1>Загрузка...</h1>
+    if (isLoading) return <Skeleton className={"rounded-2xl bg-[#E5E5EA] w-[50%] h-5 my-[9px]"} />
     if (isError) return <h1>Ошибка</h1>
     if (!data) return <h1>Отзывов нету</h1>
 

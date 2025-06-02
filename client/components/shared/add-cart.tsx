@@ -30,7 +30,7 @@ import { Minus, Plus } from 'lucide-react'
 
 interface Props {
     isPrice: number
-    isSize: Array<string>
+    isSize: string[]
     isId: number
 }
 

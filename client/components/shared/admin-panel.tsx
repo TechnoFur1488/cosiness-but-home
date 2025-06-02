@@ -12,9 +12,12 @@ export const AdminPanel = () => {
     return (
         <div>
             {role === "ADMIN"
-                ? <div className={"flex justify-between"}>
-                    <CreateProduct />
-                    <LastOrder />
+                ?
+                <div>
+                    <div className={"flex justify-between"}>
+                        <CreateProduct />
+                        <LastOrder />
+                    </div>
                 </div>
                 : <NotFound />
             }

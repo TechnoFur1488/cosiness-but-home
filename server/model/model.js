@@ -11,23 +11,40 @@ const User = sequelize.define("user", {
 
 const Cart = sequelize.define("cart", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    sessionId: { type: DataTypes.STRING, unique: true },
+    sessionId: { type: DataTypes.STRING, unique: true, allowNull: false },
+}, {
+    indexes: [
+        {
+            unique: true,
+            fields: ["sessionId"]
+        }
+    ]
 })
 
 const Forever = sequelize.define("forever", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    sessionId: { type: DataTypes.STRING, unique: true },
+    sessionId: { type: DataTypes.STRING, unique: true, allowNull: false },
+}, {
+    indexes: [
+        {
+            unique: true,
+            fields: ["sessionId"]
+        }
+    ]
+})
+
+const ForeverProduct = sequelize.define("forever_product", {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    foreverId: { type: DataTypes.STRING, allowNull: false }
 })
 
 const CartProduct = sequelize.define("cart_product", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     size: { type: DataTypes.STRING, allowNull: false },
     quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
-    total: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 }
-})
-
-const ForeverProduct = sequelize.define("forever_product", {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }
+    total: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    totalDiscount: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
+    cartId: { type: DataTypes.STRING, allowNull: false }
 })
 
 const Order = sequelize.define("order", {
@@ -99,14 +116,14 @@ Order.belongsTo(User)
 User.hasMany(Rating)
 Rating.belongsTo(User)
 
-Forever.hasMany(ForeverProduct)
-ForeverProduct.belongsTo(Forever)
+Forever.hasMany(ForeverProduct, { foreignKey: 'foreverId', sourceKey: 'sessionId' })
+ForeverProduct.belongsTo(Forever, { foreignKey: 'foreverId', targetKey: 'sessionId' })
 
 Product.hasOne(ForeverProduct)
 ForeverProduct.belongsTo(Product)
 
-Cart.hasMany(CartProduct)
-CartProduct.belongsTo(Cart)
+Cart.hasMany(CartProduct, { foreignKey: 'cartId', sourceKey: 'sessionId' })
+CartProduct.belongsTo(Cart, { foreignKey: 'cartId', sourceKey: 'sessionId' })
 
 Product.hasOne(CartProduct)
 CartProduct.belongsTo(Product)
@@ -121,7 +138,7 @@ Product.hasMany(OrderItem)
 OrderItem.belongsTo(Product)
 
 Order.hasMany(OrderItem)
-OrderItem.belongsTo(Order)
+OrderItem.belongsTo(Order)  
 
 
 export { User, Order, Cart, Forever, CartProduct, ForeverProduct, Product, Rating, Catalog, OrderItem }

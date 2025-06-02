@@ -7,13 +7,16 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { CartForm } from './cart-form'
 import { useEffect } from 'react'
+import { Button } from '../ui/button';
+import Link from 'next/link';
+import { requestToBodyStream } from 'next/dist/server/body-streams';
 
 interface Cart {
     id: number
     size: Array<string>
     quantity: number
     total: number
-    productId: number| null
+    productId: number | null
     product: {
         name: string
         img: Array<string>
@@ -22,22 +25,11 @@ interface Cart {
 
 
 export const Cart = () => {
-    const { data, isLoading, isError } = useGetCartQuery()
+    const { data, isLoading, isError, refetch } = useGetCartQuery()
     const [deleteCart] = useDeleteCartMutation()
-
-    useEffect(() => {
-        if (data?.cartItem) {
-            data.cartItem.forEach((item: Cart) => {
-                if (!item.productId) {
-                    handleDeleteCart(item.id)
-                }
-            })
-        }
-    }, [data])
 
     if (isLoading) return <h1>Загрузка</h1>
     if (isError) return <h1>Ошибка</h1>
-    if (!data || !data.cartItem.length) return <h1>Корзина пуста</h1>
 
     const handleDeleteCart = async (id: number) => {
         try {
@@ -48,65 +40,58 @@ export const Cart = () => {
         }
     }
 
-    const validCartItems = data.cartItem.filter((item: Cart) => item.productId !== null)
+    const validCartItems = data?.cartItem ? data.cartItem.filter((item: Cart) => item.productId !== null) : []
+    
     const total = validCartItems.map((el) => el.total)
+    const totalDiscount = validCartItems.map(el => el.totalDiscount)
+
+    const totalSum = total.reduce((sum, num) => sum + num, 0)
+    const totalDiscountSum = totalDiscount.reduce((sum, num) => sum + num, 0)
+
+    const totalPriceDiscount = totalSum + totalDiscountSum
 
     return (
         <div className={"flex justify-between"}>
-            <div>
-                {validCartItems.map((el: Cart) => {
-                    // const [quantity, setQuantity] = useState([...el.quantity])
-
-                    const altName = el.product.name
-
-                    return (
-                        <div className={"w-238 h-62 bg-[#F8F8F8] py-7 px-7.5 flex mb-2.5 rounded-2xl"} key={el.id}>
-                            <div className={"w-[153px] h-[194px] relative shrink-0"}>
-                                <Swiper spaceBetween={30} slidesPerView={1} className={"h-full w-full"}>
-                                    {el.product.img.map((el, i) => (
-                                        <SwiperSlide key={i} className={"!h-full"}>
-                                            <div className={"relative h-full w-full"}>
-                                                <Image
-                                                    src={el} fill className={"rounded-2xl object-cover"} sizes="(max-width: 768px) 100vw, 345px" alt={altName} priority={i === 0} />
+            <div className={"w-full mr-9 space-y-5"}>
+                {!data || !data.cartItem.length ? (
+                    <div className="bg-white p-3 rounded-2xl shadow text-center space-y-2">
+                        <h1>Корзина пуста</h1>
+                        <Link className={"w-50 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary-foreground h-9 px-4 py-2 has-[>svg]:px-3 bg-black shadow cursor-pointer hover:bg-[#222222] transition duration-150"} href={"/shop"}>Найти нужный товар</Link>
+                    </div>
+                ) : (
+                    <>
+                        {validCartItems.map(el => {
+                            return (
+                                <div key={el.id} className={"flex justify-between bg-white p-3 rounded-2xl shadow"}>
+                                    <Link href={`/product/${el.productId}`}>
+                                        <div className={"flex items-center"}>
+                                            <div className={"relative w-17.5 h-17.5"}>
+                                                <Image src={el.product.img[0]} className={"object-cover rounded-2xl"} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" fill alt={"asd"} />
                                             </div>
-                                        </SwiperSlide>
-                                    ))}
-                                </Swiper>
-                            </div>
-                            <div className={"flex justify-between items-center w-full ml-15"}>
-                                <div className={"flex flex-col justify-between items-start h-full w-40"}>
-                                    <div className={'flex flex-col'}>
-                                        <span className='mb-6 text-[20px] font-medium'>{el.product.name}</span>
-                                        <span className='text-[20px] font-medium'>Размер: {el.size}</span>
-                                    </div>
-                                    <div className={'flex justify-between w-[108px]'}>
-                                        <button className={" cursor-pointer w-[45px] h-[45px] bg-[#E5E5EA] rounded-2xl flex items-center justify-center hover:bg-[#DBDBDB] transition duration-150"}>
-                                            <Heart width={30} height={30} fill='currentColor' className={"text-[#8E8E93]"} />
-                                        </button>
-                                        <button onClick={() => handleDeleteCart(el.id)} className={"cursor-pointer w-[45px] h-[45px] bg-[#E5E5EA] rounded-2xl flex items-center justify-center hover:bg-[#DBDBDB] transition duration-150"}>
-                                            <Trash2 width={30} height={30} className={"text-[#8E8E93]"} />
-                                        </button>
+                                            <div className={"flex flex-col ml-4"}>
+                                                <span className={"font-medium"}>{el.product.name}</span>
+                                                <span className={"text-[#737373]"}>количество: {el.quantity}</span>
+                                                <span className={"text-[#737373]"}>Размер: {el.size}</span>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                    <div className={"flex flex-col items-center justify-between"}>
+                                        <span>{el.total.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                                        <span className={"line-through text-sm"}>{el.totalDiscount.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                                        <Button onClick={() => handleDeleteCart(el.id)} className={"cursor-pointer"}>Удалить</Button>
                                     </div>
                                 </div>
-                                <div className={"flex items-center justify-between w-[150px]"}>
-                                    <button onClick={() => { el.id, el.quantity - 1 }} className={" cursor-pointer w-10 h-10 bg-[#E5E5EA] rounded-2xl flex items-center justify-center hover:bg-[#DBDBDB] transition duration-150"}>
-                                        <Minus width={32} height={32} />
-                                    </button>
-                                    <span className={"text-[26px] font-medium"}>{el.quantity}</span>
-                                    <button onClick={() => { el.quantity + 1 }} className={" cursor-pointer w-10 h-10 bg-[#E5E5EA] rounded-2xl flex items-center justify-center hover:bg-[#DBDBDB] transition duration-150"}>
-                                        <Plus width={32} height={32} />
-                                    </button>
-                                </div>
-                                <div className={'flex flex-col items-center w-40'}>
-                                    <h2 className={"text-[26px] font-medium mb-7"}>Итог</h2>
-                                    <span className={"text-2xl text-[#6E6E73]"}>{el.total.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
-                                </div>
-                            </div>
+                            )
+                        })}
+                        <div className={"flex flex-col space-y-1 bg-white p-2 shadow rounded-2xl w-50"}>
+                            <span className={"text-[#737373]"}>Товары: {totalPriceDiscount.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                            <span className={"text-[#737373]"}>Скидка: -{totalDiscountSum.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                            <span className={"text-[#737373]"}>Итого: {totalSum.toLocaleString("ru-RU", { style: "currency", currency: "RUB", minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                         </div>
-                    )
-                })}
+                    </>
+                )}
             </div>
-            <CartForm isTotal={total} />
+            <CartForm refetch={refetch} />
         </div>
     )
 }

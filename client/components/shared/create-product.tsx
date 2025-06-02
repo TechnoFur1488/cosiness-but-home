@@ -275,7 +275,7 @@ export const CreateProduct = () => {
                         name="catalogId"
                         render={({ field }) => (
                             <FormItem className={"mb-5"}>
-                                <FormLabel>Введите id каталога</FormLabel>
+                                <FormLabel>Выберите каталог</FormLabel>
                                 <FormControl>
                                     <Input {...field} type="number" />
                                 </FormControl>

@@ -27,7 +27,7 @@ export const BigRating = ({ isBigRating, isSetBigRating, ratingId }: Props) => {
 
     return (
         <div className={cn("fixed w-full h-screen top-0 left-0 z-[139]")}>
-            <div className={"w-[85%] h-[90%] rounded-2xl flex items-center justify-center bg-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-100 z-[141]"}>
+            <div className={"w-[85%] h-[90%] rounded-2xl flex items-center justify-center bg-[#f5f5f7] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-100 z-[141]"}>
                 <button className={"absolute right-2 top-2 cursor-pointer"} onClick={() => isSetBigRating(false)}><X /></button>
                 <div className={"flex w-[80%]"}>
                     <Swiper className="w-[80%] h-[800px]" navigation={true} modules={[Navigation]}>
@@ -37,20 +37,18 @@ export const BigRating = ({ isBigRating, isSetBigRating, ratingId }: Props) => {
                             </SwiperSlide>
                         ))}
                     </Swiper>
-                    <div className={"w-[30%] p-3 space-y-2 bg-[#F8F8F8] rounded-2xl"}>
+                    <div className={"w-[30%] p-3 space-y-2 bg-white rounded-2xl shadow"}>
                         <div className={"flex justify-between w-full"}>
-                            <span>
-                                {oneRating?.name}
-                            </span>
-                            <div>
-                                <div>
-                                    {GradeRating(Number(oneRating?.grade))}
-                                    {DatePost(String(oneRating?.createdAt))}
-                                </div>
+                            <div className={"flex flex-col"}>
+                                <span className={"font-medium"}>
+                                    {oneRating?.name}
+                                </span>
+                                <span className={"font-light text-sm"}>{DatePost(String(oneRating?.createdAt))}</span>
                             </div>
+                            {GradeRating(Number(oneRating?.grade))}
                         </div>
                         <div>
-                            <p>{oneRating?.gradeText}</p>
+                            <p className={"font-light"}>{oneRating?.gradeText}</p>
                         </div>
                     </div>
                 </div>

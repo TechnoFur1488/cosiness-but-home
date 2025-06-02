@@ -56,7 +56,7 @@ export const ProductOption = () => {
     }
 
     return (
-        <div className={"flex justify-between relative"}>
+        <div className={"flex justify-between flex-col relative"}>
             <div>
                 <UpdateProduct
                     isSetEdit={setEdit}
@@ -95,6 +95,10 @@ export const ProductOption = () => {
                 isSize={product.size}
                 isDescription={product.description}
                 isFrom={product.from}
+                isPrice={product.price}
+                isDiscount={product.discount}
+                isProductId={productId}
+                isSelectedSize={selectedSize}
 
                 isEdit={edit}
 
@@ -123,14 +127,6 @@ export const ProductOption = () => {
                 setEditFrom={setFrom}
 
                 selectSize={setSelectedSize}
-            />
-            <ProductBuy
-                isEdit={edit}
-                isSize={product.size}
-                isPrice={product.price}
-                isDiscount={product.discount}
-                isSelectedSize={selectedSize}
-                isProductId={productId}
 
                 editPrice={price}
                 setEditPrice={setPrice}

@@ -1,14 +1,17 @@
 "use client"
 
-import { useGetForeverQuery, useLazyGetProductsQuery } from '@/store/apiSlice'
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useLazyGetProductsQuery } from '@/store/apiSlice'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { ProductImg } from './product-img'
 import { AddCart } from './add-cart'
 import { DeleteProductBtn } from './delete-product-btn'
-import { RatingProducts } from './rating-products'
+import { RatingProductsStars } from './rating-products-stars'
 import { FavoriteProduct } from './favorite-product'
 import { ProductLoading } from '../status/product-loading'
+import Image from 'next/image'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import "swiper/css"
+import { Autoplay } from 'swiper/modules'
 
 interface Products {
     id: number
@@ -30,143 +33,103 @@ interface ProductsProps {
 }
 
 export const Products = ({ initialData }: ProductsProps) => {
+
     const [trigger, { data, isLoading, isError, isFetching }] = useLazyGetProductsQuery()
-    const [allProducts, setAllProducts] = useState<Products[]>(initialData.products)
-    const loaderRef = useRef<HTMLDivElement>(null)
-    const { data: forever } = useGetForeverQuery()
-    const [page, setPage] = useState(0)
-    const [isMounted, setIsMounted] = useState(false)
-    const [currentData, setCurrentData] = useState<ProductsResponse>(initialData)
+    const [currentOffset, setCurrentOffset] = useState(0)
+    const observerTarget = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        setIsMounted(true)
-    }, [])
-
-    useEffect(() => {
-        if (data?.products) {
-            setAllProducts(prev => {
-                const newProducts = data.products.filter(
-                    newProduct => !prev.some(product => product.id === newProduct.id)
-                )
-                return [...prev, ...newProducts]
-            })
-            setCurrentData(data)
+        if (initialData) {
+            trigger({ offset: 0 }, true)
+        } else {
+            trigger({ offset: 0 })
         }
-    }, [data])
+    }, [trigger, initialData])
+
+    const loadMore = useCallback(() => {
+        if (!isFetching && data?.hasMore) {
+            setCurrentOffset(data.nextOffset)
+            trigger({
+                offset: data.nextOffset
+            })
+        }
+    }, [isLoading, data, trigger])
 
     useEffect(() => {
-        if (!isMounted) return
-
         const observer = new IntersectionObserver(
-            entries => {
-                const firstEntry = entries[0]
-                if (firstEntry.isIntersecting && !isFetching && currentData?.hasMore) {
-                    const nextPage = page + 1
-                    setPage(nextPage)
-                    trigger(currentData.nextOffset)
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    loadMore()
                 }
             },
             {
                 threshold: 0.1,
-                rootMargin: '100px'
+                rootMargin: "100px"
             }
         )
 
-        const currentLoader = loaderRef.current
-        if (currentLoader) {
-            observer.observe(currentLoader)
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current)
         }
 
         return () => {
-            if (currentLoader) {
-                observer.unobserve(currentLoader)
+            if (observerTarget.current) {
+                observer.unobserve(observerTarget.current)
             }
         }
-    }, [currentData, isFetching, page, isMounted])
+    }, [loadMore])
 
-    const productsWithKeys = useMemo(() => {
-        return allProducts.map((product, index) => ({
-            ...product,
-            uniqueKey: `${product.id}-${index}`
-        }))
-    }, [allProducts])
+    const displayData = data || initialData
 
-    const favorite = useMemo(() => {
-        return new Set(forever?.foreverItem?.map(i => i.product.id) || new Set())
-    }, [forever])
-
-    if (!isMounted) {
-        return null
-    }
-
-    if (isError) {
-        return (
-            <div className="flex justify-center items-center min-h-[400px]">
-                <div className="text-center py-10 text-red-500">Ошибка загрузки товаров</div>
-            </div>
-        )
-    }
-
-    if (isLoading && allProducts.length === 0) {
-        return (
-            <ProductLoading />
-        )
-    }
+    if (isLoading && !data) return <ProductLoading />
+    if (isError) return <h1>Ошибка при загрузке отзывов</h1>
+    if (!data?.products.length) return <h1 className={"text-center"}>Нет товаров</h1>
 
     return (
         <>
-            <div className={"mb-3"}>
-                <h1 className={"text-[32px] font-bold pb-3"}>Весь ассортимент</h1>
-                <span className={"text-[#737373]"}>Познакомьтесь с нашей тщательно отобранной коллекцией ковров премиум-класса, призванных придать вашему жилому дому пространству комфорт и стиль</span>
-            </div>
-            <div className={"grid grid-cols-5 gap-x-5 gap-y-46"}>
-                {productsWithKeys.map((el) => {
+            <div className={"grid grid-cols-5 gap-x-5 gap-y-5"}>
+                {displayData.products.map((el, i) => {
                     return (
-                        <div className={"flex flex-col items-start justify-between relative h-72.5"} key={el.uniqueKey}>
-                            <Link className={"flex flex-col justify-between"} href={`/product/${el.id}`}>
-                                <ProductImg isImg={el.img} />
-                                <div className={"h-24 my-3 flex justify-between flex-col"}>
+                        <div key={`${el.id}-${i}`} className={"bg-white p-2 rounded-2xl shadow h-114 flex justify-between flex-col relative"}>
+                            <Link href={`/product/${el.id}`}>
+                                <div className={"w-full relative"}>
+                                    <Image src={el.img[0]} alt="Main product image" fill className={"object-cover rounded-2xl hover:opacity-0 relative z-20"} sizes="(max-width: 768px) 100vw, 345px" priority />
+                                    <Swiper className="w-full h-[300] rounded-2xl" spaceBetween={30} centeredSlides={true} loop={true} autoplay={{ delay: 2000, disableOnInteraction: false, }} modules={[Autoplay]}>
+                                        {el.img.map((elImg, i) => (
+                                            <SwiperSlide key={i}>
+                                                <div className={"w-full h-[300px] relative"}>
+                                                    <Image className={"rounded-2xl object-cover"} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" fill src={elImg} alt={elImg} />
+                                                </div>
+                                            </SwiperSlide>
+                                        ))}
+                                    </Swiper>
+                                </div>
+                                <div className={"flex justify-between flex-col mt-2 space-y-2"}>
                                     <span>{el.name}</span>
                                     <div className={"text-[#737373]"}>
-                                        <span>
-                                            {el.price.toLocaleString("ru-RU", {
-                                                style: "currency",
-                                                currency: "RUB",
-                                                maximumFractionDigits: 0,
-                                                minimumFractionDigits: 0
-                                            })}
-                                        </span>
-                                        {el.discount > 0 && (
-                                            <span className="pl-3 line-through">
-                                                {el.discount.toLocaleString("ru-RU", {
-                                                    style: "currency",
-                                                    currency: "RUB",
-                                                    maximumFractionDigits: 0
-                                                })}
-                                            </span>
-                                        )}
+                                        <span>{el.price.toLocaleString("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0, minimumFractionDigits: 0 })}</span>
+                                        <span className={"pl-3 line-through"}>{el.discount.toLocaleString("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0, minimumFractionDigits: 0 })}</span>
                                     </div>
-                                    <RatingProducts isId={el.id} />
+                                    <RatingProductsStars isId={el.id} />
                                 </div>
                             </Link>
-                            <FavoriteProduct
-                                isId={el.id}
-                                isFavorite={favorite}
-                            />
+                            <FavoriteProduct isId={el.id} />
                             <DeleteProductBtn isId={el.id} />
-                            <div className="w-full">
+                            <div className={"w-full"}>
                                 <AddCart isPrice={el.price} isSize={el.size} isId={el.id} />
                             </div>
                         </div>
                     )
                 })}
             </div>
-            <div ref={loaderRef} className='mb-20'>
-                {isFetching && (
-                    <ProductLoading />
-                )}
-                {!currentData?.hasMore && <span className="text-gray-400 flex justify-center mt-15">Товаров больше нет</span>}
-            </div>
+            <div
+                ref={observerTarget}
+                className="h-10"
+                style={{ visibility: data?.hasMore ? 'visible' : 'hidden' }}
+            />
+            {isFetching && (
+                <ProductLoading />
+            )}
         </>
     )
 }

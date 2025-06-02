@@ -22,17 +22,17 @@ class OrderController {
     async createOrder(req, res) {
         try {
             const { mail, name, adress, phone, delivery, pay } = req.body
-            const { cart } = req
+            const sessionId = req.sessionId
 
-            if (!cart) {
-                return res.status(404).json({ message: "Корзина не найдена" })
+            if (!sessionId) {
+                return res.status(402).json({ message: "Корзина не найдена" })
             }
 
             if (!mail || !name || !adress || !phone || !delivery || !pay) {
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
 
-            const cartItem = await CartProduct.findAll({ where: { cartId: cart.id }, include: [Product] })
+            const cartItem = await CartProduct.findAll({ where: { cartId: sessionId }, include: [Product] })
 
             if (!cartItem || cartItem.length === 0) {
                 return res.status(404).json({ message: "Товары не найдены" })
@@ -46,7 +46,7 @@ class OrderController {
                 await OrderItem.create({ orderId: order.id, productId: item.product.id, quantity: item.quantity, price: item.total, discount: item.discount, productName: item.product.name, size: item.size })
             }
 
-            await CartProduct.destroy({ where: { cartId: cart.id } })
+            await CartProduct.destroy({ where: { cartId: sessionId } })
 
             const fromClient = {
                 from: mail,

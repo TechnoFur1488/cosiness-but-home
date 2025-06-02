@@ -2,6 +2,9 @@ import { ModalInformation } from './modal-information'
 import { ProductSelectSize } from './product-select-size'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
+import { Button } from '../ui/button'
+import { ProductBuy } from './product-buy'
+import { ParamValue } from 'next/dist/server/request/params'
 
 interface Props {
     isName: string
@@ -9,9 +12,13 @@ interface Props {
     isWarp: string
     isHight: number
     isHardness: number
-    isSize: Array<string>
+    isSize: string[]
     isDescription: string
     isFrom: string
+    isPrice: number
+    isDiscount: number
+    isSelectedSize: string
+    isProductId: ParamValue
 
     isEdit: boolean
 
@@ -40,6 +47,15 @@ interface Props {
     setEditFrom: React.Dispatch<React.SetStateAction<string>>
 
     selectSize: React.Dispatch<React.SetStateAction<string>>
+
+    editPrice: number
+    setEditPrice: React.Dispatch<React.SetStateAction<number>>
+
+    editDiscount: number
+    setEditDiscount: React.Dispatch<React.SetStateAction<number>>
+
+    setEditCatalogId: React.Dispatch<React.SetStateAction<number>>
+    editCatalogId: number
 }
 
 export const ProductInformation = ({
@@ -52,6 +68,10 @@ export const ProductInformation = ({
     isDescription,
     isEdit,
     isFrom,
+    isDiscount,
+    isPrice,
+    isSelectedSize,
+    isProductId,
 
     editName,
     setEditName,
@@ -77,74 +97,144 @@ export const ProductInformation = ({
     editFrom,
     setEditFrom,
 
-    selectSize
+    selectSize,
+
+    editPrice,
+    setEditPrice,
+
+    editDiscount,
+    setEditDiscount,
+
+    editCatalogId,
+    setEditCatalogId
 }: Props) => {
     let description: string = isDescription
 
     if (description.length > 150) {
-        description = description.slice(0, 150) + "..."
+        description = description.slice(0, 220) + "... "
     }
 
     return (
         <>
             {isEdit
                 ?
-                <div className={"w-[467px] min-h-[692px] flex flex-col justify-between"}>
-                    <Input className={"h-15 font-medium text-[40px]"} type='text' value={editName} onChange={e => setEditName(e.target.value)} />
-                    <h2 className={"my-[10px] font-medium text-[32px]"}>Характеристики</h2>
-                    <div className={"flex h-50 justify-between flex-col"}>
-                        <span className={"flex items-center"}>
-                            <span className={" text-[#6E6E73]"}>Состав:</span>
-                            <Input className={"h-10"} type='text' value={editCompound} onChange={e => setEditCompound(e.target.value)} />
-                        </span>
-                        <span className={"flex items-center"}>
-                            <span className={" text-[#6E6E73]"}>Основа:</span>
-                            <Input className={"h-10"} type='text' value={editWarp} onChange={e => setEditWarp(e.target.value)} />
-                        </span>
-                        <span className={"flex items-center"}>
-                            <span className={" text-[#6E6E73]"}>Высота ворса:</span>
-                            <Input className={"h-10"} type="number" value={editHight} onChange={e => setEditHight(Number(e.target.value))} />мм
-                        </span>
-                        <span className={"flex items-center"}>
-                            <span className={" text-[#6E6E73]"}>Плотность:</span>
-                            <Input className={"h-10"} type='number' value={editHardness} onChange={e => setEditHardness(Number(e.target.value))} />
-                        </span>
-                        <span className={"flex items-center"}>
-                            <span className={" text-[#6E6E73]"}>Производитель:</span>
-                            <Input className={"h-10"} type='text' value={editFrom} onChange={e => setEditFrom(e.target.value)} />
-                        </span>
+                <div className={"flex flex-col justify-between my-0 space-y-3"}>
+                    <Input className={"h-[33px] font-bold text-[22px]"} type='text' value={editName} onChange={e => setEditName(e.target.value)} />
+                    <Textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} />
+                    <h2 className={"font-bold text-[18px]"}>Выбрать размер</h2>
+                    <Textarea value={editSize} onChange={e => setEditSize(e.target.value)} />
+                    <h2 className={"font-bold text-[18px]"}>Цена</h2>
+                    <ProductBuy
+                        isEdit={isEdit}
+                        isPrice={isPrice}
+                        isDiscount={isDiscount}
+                        isSize={isSize}
+                        isSelectedSize={isSelectedSize}
+                        isProductId={isProductId}
+
+                        editPrice={editPrice}
+                        setEditPrice={setEditPrice}
+
+                        editDiscount={editDiscount}
+                        setEditDiscount={setEditDiscount}
+
+                        editCatalogId={editCatalogId}
+                        setEditCatalogId={setEditCatalogId}
+                    />
+                    <h2 className={"font-bold text-[18px]"}>Информация о товаре</h2>
+                    <div className={"text-sm font-light"}>
+                        <div className={"bg-[#E5E8EB] h-[1px] mb-4"} />
+                        <div className={"flex justify-between mb-5"}>
+                            <div className={"w-[50%] flex flex-col items-start"}>
+                                <span className={" text-[#737373]"}>Состав:</span>
+                                <Input className={"w-100"} type='text' value={editCompound} onChange={e => setEditCompound(e.target.value)} />
+                            </div>
+                            <div className={"w-[50%] flex flex-col items-start"}>
+                                <span className={"text-[#737373]"}>Основа</span>
+                                <Input className={"w-100"} type='text' value={editWarp} onChange={e => setEditWarp(e.target.value)} />
+                            </div>
+                        </div>
+                        <div className={"bg-[#E5E8EB] h-[1px] mb-4"} />
+                        <div className={"flex justify-between mb-5"}>
+                            <div className={"w-[50%] flex flex-col items-start"}>
+                                <span className={"text-[#737373]"}>Высота ворса</span>
+                                <Input className={"w-100"} type="number" value={editHight} onChange={e => setEditHight(Number(e.target.value))} />мм
+                            </div>
+                            <div className={"w-[50%] flex flex-col items-start"}>
+                                <span className={"text-[#737373]"}>Плотность</span>
+                                <Input className={"w-100"} type='number' value={editHardness} onChange={e => setEditHardness(Number(e.target.value))} />
+                            </div>
+                        </div>
+                        <div className={"bg-[#E5E8EB] h-[1px] mb-4"} />
+                        <div className={"flex justify-between mb-5"}>
+                            <div className={"w-[50%] flex flex-col items-start"}>
+                                <span className={"text-[#737373]"}>Производитель</span>
+                                <Input className={"w-100"} type='text' value={editFrom} onChange={e => setEditFrom(e.target.value)} />
+                            </div>
+                        </div>
                     </div>
-                    <h2 className={"my-[10px] text-[32px] font-medium"}>Размеры</h2>
-                    <div>
-                        <Textarea value={editSize} onChange={e => setEditSize(e.target.value)} />
-                    </div>
-                    <h2 className={"py-[10px] text-[32px] font-medium"}>Описание</h2>
-                    <p className={"text-[#6E6E73] "}>
-                        <Textarea className='h-20' value={editDescription} onChange={e => setEditDescription(e.target.value)} />
-                    </p>
                 </div>
                 :
-                <div className={"w-[467px] flex flex-col justify-between"}>
-                    <h1 className={"font-medium text-[40px]"}>{isName}</h1>
-                    <h2 className={"py-[10px] font-medium text-[32px]"}>Характеристики</h2>
-                    <div className={"flex h-40 justify-between flex-col"}>
-                        <span><span className={" text-[#6E6E73]"}>Состав:</span> {isCompound}</span>
-                        <span><span className={" text-[#6E6E73]"}>Основа:</span> {isWarp}</span>
-                        <span><span className={" text-[#6E6E73]"}>Высота ворса:</span> {isHight} мм</span>
-                        <span><span className={" text-[#6E6E73]"}>Плотность:</span> {isHardness.toLocaleString("ru-RU")} </span>
-                        <span><span className={" text-[#6E6E73]"}>Производитель:</span> {isFrom} </span>
-                    </div>
-                    <h2 className={"py-[10px] text-[32px] font-medium"}>Размеры</h2>
-                    <div>
-                        <ProductSelectSize selectSize={selectSize} isSize={isSize} />
-                    </div>
-                    <h2 className={"py-[10px] text-[32px] font-medium"}>Описание</h2>
-                    <p className={"text-[#6E6E73] "}>
+                <div className={"mt-9 space-y-3"}>
+                    <h1 className={"text-[22px] font-bold"}>{isName}</h1>
+                    <p className={"font-light"}>
                         {description}
-                        <ModalInformation >
+                        <ModalInformation>
                             {isDescription}
                         </ModalInformation>
                     </p>
+                    <h2 className={"font-bold text-[18px]"}>Выбрать размер</h2>
+                    <ProductSelectSize selectSize={selectSize} isSize={isSize} />
+                    <h2 className={"font-bold text-[18px]"}>Цена</h2>
+                    <ProductBuy
+                        isEdit={isEdit}
+                        isPrice={isPrice}
+                        isDiscount={isDiscount}
+                        isSize={isSize}
+                        isSelectedSize={isSelectedSize}
+                        isProductId={isProductId}
+
+                        editPrice={editPrice}
+                        setEditPrice={setEditPrice}
+
+                        editDiscount={editDiscount}
+                        setEditDiscount={setEditDiscount}
+
+                        editCatalogId={editCatalogId}
+                        setEditCatalogId={setEditCatalogId}
+                    />
+                    <h2 className={"font-bold text-[18px]"}>Информация о товаре</h2>
+                    <div className={"text-sm font-light"}>
+                        <div className={"bg-[#E5E8EB] h-[1px] mb-4"} />
+                        <div className={"flex justify-between mb-5"}>
+                            <div className={"w-[50%] flex flex-col items-start"}>
+                                <span className={"text-[#737373]"}>Состав</span>
+                                <span>{isCompound}</span>
+                            </div>
+                            <div className={"w-[50%] flex flex-col items-start"}>
+                                <span className={"text-[#737373]"}>Основа</span>
+                                <span>{isWarp}</span>
+                            </div>
+                        </div>
+                        <div className={"bg-[#E5E8EB] h-[1px] mb-4"} />
+                        <div className={"flex justify-between mb-5"}>
+                            <div className={"w-[50%] flex flex-col items-start"}>
+                                <span className={"text-[#737373]"}>Высота ворса</span>
+                                <span>{isHight} мм</span>
+                            </div>
+                            <div className={"w-[50%] flex flex-col items-start"}>
+                                <span className={"text-[#737373]"}>Плотность</span>
+                                <span>{isHardness.toLocaleString("ru-RU")}</span>
+                            </div>
+                        </div>
+                        <div className={"bg-[#E5E8EB] h-[1px] mb-4"} />
+                        <div className={"flex justify-between mb-5"}>
+                            <div className={"w-[50%] flex flex-col items-start"}>
+                                <span className={"text-[#737373]"}>Производитель</span>
+                                <span>{isFrom}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             }
         </>

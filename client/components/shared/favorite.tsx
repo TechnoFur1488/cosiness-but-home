@@ -4,7 +4,6 @@ import { useDeleteForeverMutation, useGetForeverQuery } from '@/store/apiSlice'
 import React, { useState } from 'react'
 import { Heart } from 'lucide-react'
 import { AddCart } from './add-cart'
-import { ProductImg } from './product-img'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -53,13 +52,13 @@ export const Favorite = ({ className }: Props) => {
     if (isError) return <h1>Ошибка</h1>
 
     return (
-        <div className={cn("", className)}>
+        <div className={cn("space-y-5", className)}>
             {data?.foreverItem?.map((el: Forever) => {
 
                 const product = el.product
 
                 return (
-                    <div key={el.id} className="flex items-center justify-between relative space-y-5 group">
+                    <div key={el.id} className="flex items-center justify-between relative group bg-white p-2 rounded-2xl shadow">
                         <Link className={"flex items-center flex-1"} href={`/product/${product.id}`}>
                             <div className={"relative w-[120px] h-[80px] min-w-[120px]"}>
                                 <Image
@@ -101,7 +100,7 @@ export const Favorite = ({ className }: Props) => {
                                 <Heart width={24} height={24} fill={'#FF3B30'} color={'#FF3B30'} />
                             </button>
                             <div className="w-[140px]">
-                                <AddCart isPrice={product.price} isSize={product.size} isId={el.id} />
+                                <AddCart isPrice={product.price} isSize={product.size} isId={product.id} />
                             </div>
                         </div>
                     </div>

@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 
 interface Products {
     id: number
-    img: Array<string>
+    img: string[]
     name: string
     price: number
     discount: number
@@ -10,7 +10,7 @@ interface Products {
     warp: string
     hight: number
     hardness: number
-    size: Array<string>
+    size: string[]
     description: string
     from: string
     catalogId: number
@@ -27,11 +27,17 @@ interface Rating {
     createdAt: string
 }
 
+interface RatingResponse {
+    ratings: Rating[]
+    hasMore: boolean
+    nextOffset: number
+}
+
 interface PostRating {
     name: string
     grade: number
     gradeText?: string
-    img?: Array<string>
+    img?: string[]
 }
 
 interface ProductsResponse {
@@ -82,6 +88,7 @@ interface Cart {
     size: Array<string>
     quantity: number
     total: number
+    totalDiscount: number
     productId: number
     product: {
         name: string
@@ -123,7 +130,6 @@ export const apiSlice = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: process.env.NEXT_PUBLIC_APP_API_URL,
         prepareHeaders: (headers, { getState }) => {
-            // В SSR режиме localStorage недоступен
             if (typeof window !== 'undefined') {
                 const token = localStorage.getItem("token")
                 if (token) {
@@ -144,14 +150,14 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ["Product"]
         }),
-        getProducts: builder.query<ProductsResponse, number>({
-            query: (offset = 0) => `/api/products?offset=${offset}`,
+        getProducts: builder.query<ProductsResponse, { offset: number }>({
+            query: ({ offset = 0 }) => `/api/products?offset=${offset}`,
             providesTags: ["Product"],
             serializeQueryArgs: ({ endpointName }) => {
                 return endpointName
             },
             merge: (currentCache, newItems, { arg }) => {
-                if (arg === 0) {
+                if (arg.offset === 0) {
                     return newItems
                 }
                 return {
@@ -163,6 +169,10 @@ export const apiSlice = createApi({
             forceRefetch: ({ currentArg, previousArg }) => {
                 return currentArg !== previousArg
             }
+        }),
+        getNewProduct: builder.query<{products: Products[]}, void>({
+            query: () => "/api/products/new-products",
+            providesTags: ["Product"]
         }),
         updateProduct: builder.mutation<Products, FormData>({
             query: (formData) => ({
@@ -201,19 +211,39 @@ export const apiSlice = createApi({
             invalidatesTags: ["User"]
         }),
 
-        
+
         getRating: builder.query<{ rating: Rating[] }, number>({
             query: (productId) => `/api/rating/${productId}`,
             providesTags: ["Rating"]
         }),
+        getRatingLazy: builder.query<RatingResponse, { productId: number, offset: number }>({
+            query: ({ productId, offset = 0 }) => `/api/rating/${productId}/lazy-rating?offset=${offset}`,
+            providesTags: ["Rating"],
+            serializeQueryArgs: ({ endpointName }) => {
+                return endpointName
+            },
+            merge: (currentCache, newItems, { arg }) => {
+                if (arg.offset === 0) {
+                    return newItems
+                }
+                return {
+                    ratings: [...currentCache.ratings, ...newItems.ratings],
+                    hasMore: newItems.hasMore,
+                    nextOffset: newItems.nextOffset
+                }
+            },
+            forceRefetch: ({ currentArg, previousArg }) => {
+                return currentArg !== previousArg
+            }
+        }),
         getMyRating: builder.query<{ myRating: Rating }, number>({
             query: (productId) => ({
                 url: `/api/rating/${productId}/my-rating`,
-                credentials: "include"  
+                credentials: "include"
             }),
             providesTags: ["Rating"]
         }),
-        getOneRating: builder.query<{rating: Rating}, number>({
+        getOneRating: builder.query<{ rating: Rating }, number>({
             query: (id) => `/api/rating/one-rating/${id}`,
             providesTags: ["Rating"]
         }),
@@ -341,6 +371,7 @@ export const apiSlice = createApi({
 export const {
     useCreateProductMutation,
     useLazyGetProductsQuery,
+    useGetNewProductQuery,
     useGetOneProductsQuery,
     useDeleteProductMutation,
     useUpdateProductMutation,
@@ -352,6 +383,7 @@ export const {
     useGetMyRatingQuery,
     useGetOneRatingQuery,
     useGetRatingQuery,
+    useLazyGetRatingLazyQuery,
     useDeleteRatingMutation,
     useUpdateRatingMutation,
 

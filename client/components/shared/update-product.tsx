@@ -1,6 +1,6 @@
 import { Pencil } from "lucide-react"
 import { Button } from "../ui/button"
-import { useUpdateProductMutation } from "@/store/apiSlice"
+import { useGetCartQuery, useGetForeverQuery, useUpdateProductMutation } from "@/store/apiSlice"
 import { ParamValue } from "next/dist/server/request/params"
 import { useTokenDecryptor } from "../hooks/use-token-decryptor"
 
@@ -44,6 +44,8 @@ export const UpdateProduct = ({
     isCatalogId
 }: Props) => {
     const [updateProductOption] = useUpdateProductMutation()
+    const { refetch } = useGetCartQuery()
+    const { refetch: favorite } = useGetForeverQuery()
     const role = useTokenDecryptor()
 
     const handleClickUpdateProductOption = async (id: ParamValue) => {
@@ -68,6 +70,8 @@ export const UpdateProduct = ({
 
         try {
             await updateProductOption(formData).unwrap()
+            await refetch()
+            await favorite()
             isSetEdit(false)
         } catch (err) {
             alert("Не смогли обновить товар")

@@ -46,7 +46,6 @@ export const ProductBuy = ({ isPrice, editCatalogId, setEditCatalogId, isProduct
     const [cartStatus, setCartStatus] = useState(false)
     const [postCart] = usePostCartMutation()
     const { isProductInCart } = useCart()
-    const { data, isLoading, isError } = useGetCatalogQuery()
 
     useEffect(() => {
         if (isProductInCart(Number(isProductId))) {
@@ -70,41 +69,28 @@ export const ProductBuy = ({ isPrice, editCatalogId, setEditCatalogId, isProduct
         }
     }
 
-    console.log(editCatalogId);
-
     return (
-        <>
-            <div className={"bg-[#F8F8F8] w-[345px] h-[195px] rounded-2xl sticky top-7"}>
-                <div className='flex flex-col justify-between items-start w-[313px] h-full py-[27px] m-auto'>
-                    <div className='flex items-center'>
-                        {isEdit
-                            ?
-                            <>
-                                <Input type='number' value={editPrice} onChange={e => setEditPrice(Number(e.target.value))} />
-                                <Input type='number' value={editDiscount} onChange={e => setEditDiscount(Number(e.target.value))} />
-                            </>
-                            :
-                            <>
-                                <span className={"text-2xl  text-[#6E6E73]"}>{priceOfSize(isPrice, isSelectedSize).toLocaleString("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0, minimumFractionDigits: 0 })}</span>
-                                {isDiscount !== 0 && <span className='pl-4 line-through text-[18px] text-[#6E6E73]'>{priceOfSize(isDiscount, isSelectedSize).toLocaleString("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0, minimumFractionDigits: 0 })}</span>}
-                            </>
-                        }
-                    </div>
-                    <BuyOneclickForm isPrice={isPrice} isSize={isSize} />
-                    {cartStatus
-                        ?
-                        <Link className={"flex justify-center items-center bg-[#DBDBDB] text-[#6E6E73] rounded-2xl w-[313px] h-[39px] cursor-pointer hover:bg-[#c2c2c2] transition duration-150"} href={"/cart"}>Добавлено в корзину</Link>
-                        :
-                        <Button disabled={!isSelectedSize} onClick={() => { handleClickAddCart(), setCartStatus(true) }} className={"bg-[#E5E5EA] text-[#6E6E73] rounded-2xl w-[313px] h-[39px] cursor-pointer hover:bg-[#DBDBDB] transition duration-150"}>В корзину</Button>}
+        <div>
+            {isEdit
+                ?
+                <div className={"space-y-2"}>
+                    <Input type='number' value={editPrice} onChange={e => setEditPrice(Number(e.target.value))} />
+                    <Input type='number' value={editDiscount} onChange={e => setEditDiscount(Number(e.target.value))} />
+                    <h2 className={"font-bold text-[18px]"}>Каталог товара</h2>
+                    <ProductSelectCatalog editCatalogId={editCatalogId} setEditCatalogId={setEditCatalogId} />
                 </div>
-                {isEdit &&
-                    <>  
-                        <span>Каталог товара</span>
-                        <ProductSelectCatalog isLoading={isLoading} isError={isError} editCatalogId={editCatalogId} dataCatalog={data?.catalogs} setEditCatalogId={setEditCatalogId} />
-                    </>
-                }
-
-            </div >
-        </>
+                :
+                <>
+                    <div className={"font-light flex justify-between flex-col mb-3"}>
+                        <span>{priceOfSize(isPrice, isSelectedSize).toLocaleString("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0, minimumFractionDigits: 0 })}</span>
+                        {isDiscount !== 0 && <span className={'line-through text-[14px]'}>{priceOfSize(isDiscount, isSelectedSize).toLocaleString("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0, minimumFractionDigits: 0 })}</span>}
+                    </div>
+                    <div className={"flex flex-col w-50 space-y-3"}>
+                        <Button disabled={!isSelectedSize} onClick={() => { handleClickAddCart(), setCartStatus(true) }} className={"cursor-pointer"}>В корзину</Button>
+                        <BuyOneclickForm isPrice={isPrice} isSize={isSize} />
+                    </div>
+                </>
+            }
+        </div >
     )
 }

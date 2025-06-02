@@ -1,10 +1,11 @@
-import { ForeverProduct, Product } from "../model/model.js"
+import { ForeverProduct, Product, Forever } from "../model/model.js"
 
 class ForeverController {
     async addForever(req, res) {
+        const { productId } = req.params
+        const sessionId = req.sessionId
+
         try {
-            const { productId } = req.params
-            const forever = req.forever
 
             const product = await Product.findByPk(productId)
 
@@ -12,17 +13,23 @@ class ForeverController {
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
-            const foreverItem = await ForeverProduct.findOne({ where: { foreverId: forever.id, productId } })
+            let forever = await Forever.findOne({ where: { sessionId } })
 
-            // if (foreverItem) {
-            //     return res.status(400).json({ message: "Товар уже добавлен в избранное" })
-            // }
+            if (!forever) {
+                forever = await Forever.create({ sessionId });
+            }
 
-            await ForeverProduct.create({ foreverId: forever.id, productId })
+            const foreverItem = await ForeverProduct.findOne({ where: { foreverId: sessionId, productId } })
 
-            const foreverProducts = await ForeverProduct.findAll({ where: { foreverId: forever.id }, include: [Product], order: [["createdAt", "DESC"]] })
+            if (foreverItem) {
+                return res.status(400).json({ message: "Товар уже добавлен в избранное" })
+            }
 
-            return res.status(200).json({foreverProducts, message: "Товар успешно добавлен в избранное" })
+            await ForeverProduct.create({ foreverId: sessionId, productId })
+
+            const foreverProducts = await ForeverProduct.findAll({ where: { foreverId: sessionId }, include: [Product], order: [["createdAt", "DESC"]] })
+
+            return res.status(200).json({ foreverProducts, message: "Товар успешно добавлен в избранное" })
         } catch (err) {
             console.error(err)
             return res.status(500).json({ message: "Ошибка сервера" })
@@ -31,9 +38,9 @@ class ForeverController {
 
     async getForever(req, res) {
         try {
-            const { forever } = req
+            const sessionId = req.sessionId
 
-            const foreverItem = await ForeverProduct.findAll({ where: { foreverId: forever.id }, include: [Product], order: [["createdAt", "DESC"]] })
+            const foreverItem = await ForeverProduct.findAll({ where: { foreverId: sessionId }, include: [Product], order: [["createdAt", "DESC"]] })
 
             return res.status(200).json({ foreverItem })
         } catch (err) {
@@ -43,17 +50,18 @@ class ForeverController {
     }
 
     async deleteForever(req, res) {
+        const { productId } = req.params
+        const sessionId = req.sessionId
+        
         try {
-            const { productId } = req.params
-            const { forever } = req
 
             if (!productId) {
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
-            await ForeverProduct.destroy({ where: { foreverId: forever.id, productId } })
+            await ForeverProduct.destroy({ where: { foreverId: sessionId, productId } })
 
-            const foreverProducts = await ForeverProduct.findAll({ where: { foreverId: forever.id }, include: [Product], order: [["createdAt", "DESC"]] })
+            const foreverProducts = await ForeverProduct.findAll({ where: { foreverId: sessionId }, include: [Product], order: [["createdAt", "DESC"]] })
 
             return res.status(200).json({ foreverProducts, message: "Товар успешно удален из избранного" })
         } catch (err) {

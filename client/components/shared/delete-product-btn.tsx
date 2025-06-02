@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from '@/lib/utils'
-import { useDeleteProductMutation, useLazyGetProductsQuery } from '@/store/apiSlice'
+import { useDeleteProductMutation, useGetForeverQuery, useLazyGetProductsQuery } from '@/store/apiSlice'
 import { Trash2 } from 'lucide-react'
 import { useTokenDecryptor } from '../hooks/use-token-decryptor'
 import React, { useState } from 'react'
@@ -11,16 +11,16 @@ interface Props {
 }
 
 export const DeleteProductBtn = ({ isId }: Props) => {
+    const { refetch } = useGetForeverQuery()
     const [deleteProducts, setDeleteProducts] = useState(false)
     const [deleteProduct] = useDeleteProductMutation()
-    const [triggerGetProducts] = useLazyGetProductsQuery()
     const role = useTokenDecryptor()
 
     const handleClickDeleteProduct = async (id: number) => {
         try {
             setDeleteProducts(true)
             await deleteProduct(id).unwrap()
-            await triggerGetProducts()
+            await refetch()
         } catch (err) {
             setDeleteProducts(false)
             alert("Не удалось удалить")
@@ -32,8 +32,8 @@ export const DeleteProductBtn = ({ isId }: Props) => {
         <>
             {role === "ADMIN" && (
                 <>
-                    <button className={cn("cursor-pointer p-2 absolute top-0 left-0 z-30")} onClick={() => handleClickDeleteProduct(isId)}>
-                        <Trash2 color='black' fill='currentColor' className={'hover:text-red-600 duration-300 transition hover:scale-120 text-[#E5E5EA]'} />
+                    <button className={cn("cursor-pointer p-4 absolute top-0 left-0 z-30")} onClick={() => handleClickDeleteProduct(isId)}>
+                        <Trash2 size={20} color='black' fill='currentColor' className={'hover:text-red-600 duration-300 transition hover:scale-120 text-[#E5E5EA]'} />
                     </button>
                     {deleteProducts &&
                         <>

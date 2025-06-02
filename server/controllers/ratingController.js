@@ -71,7 +71,7 @@ class RatingController {
                 return res.status(404).json({ message: "Такого товара не существует" })
             }
 
-            const rating = await Rating.findAll({ where: { productId }, order: [["createdAt", "DESC"]] })
+            const rating = await Rating.findAll({ where: { productId }, attributes: ["grade"], order: [["createdAt", "DESC"]] })
 
             return res.status(200).json({ rating })
 
@@ -79,6 +79,25 @@ class RatingController {
             console.error(err)
             return res.status(500).json({ message: "Ошибка сервера" })
         }
+    }
+
+    async getAllRatingLazy(req, res) {
+        const offset = parseInt(req.query.offset) || 0
+        const limit = 10
+        const { productId } = req.params
+
+        try {
+            const { count, rows: ratings } = await Rating.findAndCountAll({ where: { productId }, limit, offset, order: [["createdAt", "DESC"]] })
+
+            const hasMore = offset + limit < count
+            const nextOffset = hasMore ? offset + limit : null
+
+            return res.status(200).json({ ratings, hasMore, nextOffset })
+        } catch (err) {
+            console.error(err)
+            return res.status(500).json({ message: "Ошибка сервера" })
+        }
+
     }
 
     async getOneMyRating(req, res) {

@@ -1,14 +1,13 @@
+import { useGetCatalogQuery } from '@/store/apiSlice'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 
 interface Props {
-    dataCatalog?: any
     setEditCatalogId: React.Dispatch<React.SetStateAction<number>>
     editCatalogId: number
-    isLoading: boolean
-    isError: boolean
 }
 
-export const ProductSelectCatalog = ({ dataCatalog, setEditCatalogId, editCatalogId, isLoading, isError }: Props) => {
+export const ProductSelectCatalog = ({setEditCatalogId, editCatalogId }: Props) => {
+    const { data, isLoading, isError } = useGetCatalogQuery()
 
     if (isLoading) return <p>Loading...</p>
     if (isError) return <p>Error</p>
@@ -19,7 +18,7 @@ export const ProductSelectCatalog = ({ dataCatalog, setEditCatalogId, editCatalo
                 <SelectValue placeholder="Выберите размер" />
             </SelectTrigger>
             <SelectContent>
-                {dataCatalog.map((el: any, i: number) => {
+                {data?.catalogs.map((el: any, i: number) => {
                     return (
                         <SelectItem value={String(el.id)} key={i}>{el.name}</SelectItem>
                     )

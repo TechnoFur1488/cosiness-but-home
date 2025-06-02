@@ -120,7 +120,7 @@ export const UpdateRating = ({ isId, isGrade, isName, isGradeText, isImg, }: Pro
 
     return (
         <AlertDialog>
-            <AlertDialogTrigger className='cursor-pointer ml-3'><Pencil className=' hover:text-green-600 duration-300 transition hover:scale-120' width={20} /></AlertDialogTrigger>
+            <AlertDialogTrigger className='cursor-pointer'><Pencil className=' hover:text-green-600 duration-300 transition hover:scale-120' width={20} /></AlertDialogTrigger>
             <AlertDialogContent>
                 <ScrollArea className={"max-h-200"}>
                     <Form {...form}>

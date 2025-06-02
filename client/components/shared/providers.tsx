@@ -4,7 +4,6 @@ import { store } from '@/store/store'
 import { PropsWithChildren } from 'react'
 import { Provider } from 'react-redux'
 import { Header } from './header'
-import { Footer } from './footer'
 
 export const Providers = ({ children }: PropsWithChildren) => {
     return (
@@ -14,7 +13,6 @@ export const Providers = ({ children }: PropsWithChildren) => {
                 <main className="flex-1">
                     {children}
                 </main>
-                {/* <Footer /> */}
             </div>
         </Provider>
     )

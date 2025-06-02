@@ -1,6 +1,7 @@
-import { Product, Rating } from "../model/model.js"
+import { CartProduct, ForeverProduct, Product, Rating } from "../model/model.js"
 import { deleteDriveFiles, deleteLocalFiles, postDriveFiles } from "../services/googleDriveServices.js"
 import "dotenv"
+import { totalPrice } from "../utils/totalPrice.js"
 
 const uploadProductImg = process.env.GOOGLE_DRIVE_PRODUCT_PHOTO
 
@@ -22,6 +23,11 @@ class ProductController {
             if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description || !catalogId) {
                 await deleteLocalFiles()
                 return res.status(400).json({ message: "Не все поля заполнены" })
+            }
+
+            if (price <= discount) {
+                await deleteLocalFiles()
+                return res.status(406).json({ message: "Цена не может быть больше скидки" })
             }
 
             if (description.trim().length < 100) {
@@ -83,6 +89,18 @@ class ProductController {
         }
     }
 
+    async getNewProducts(req, res) {
+        const limit = 4
+
+        try {
+            const products = await Product.findAll({ limit, order: [["createdAt", "DESC"]] })
+
+            return res.status(200).json({ products })
+        } catch (err) {
+            console.error(err)
+            return res.status(500).json({ message: "Ошибка сервера" })
+        }
+    }
 
     async getOneProducts(req, res) {
 
@@ -141,7 +159,9 @@ class ProductController {
                 deleteDriveFiles(allFile),
                 deleteLocalFiles(),
 
-                Rating.destroy({ where: { productId: id }, individualHooks: true })
+                Rating.destroy({ where: { productId: id }, individualHooks: true }),
+                CartProduct.destroy({ where: { productId: id } }),
+                ForeverProduct.destroy({ where: { productId: id } })
             ])
 
             await product.destroy({ userId })
@@ -200,9 +220,47 @@ class ProductController {
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
 
+            if (price <= discount) {
+                await deleteLocalFiles()
+                return res.status(406).json({ message: "Цена не может быть больше скидки" })
+            }
+
             if (description.trim().length < 100) {
                 await deleteLocalFiles()
                 return res.status(406).json({ message: "Описание не может быть меньше чем 100 симолов" })
+            }
+
+            const cartItem = await CartProduct.findAll({ where: { productId: id } })
+            const removedItems = []
+
+            if (cartItem.length > 0) {
+                const newSizes = Array.isArray(size) ? size : typeof size === "string" ? size.split(" ") : []
+
+                const normalizedNewSize = newSizes.map(s => {
+                    if (!s) return null
+                    return s.replace(/\s/g, "").toLowerCase().split("x").join("x")
+                })
+
+                await Promise.all(cartItem.map(async (item) => {
+                    const itemSize = item.size
+                    const normalizedItemSize = itemSize ? itemSize.replace(/\s/g, "").toLowerCase().split("X").join("x") : null
+
+                    const sizeExistsInProduct = normalizedNewSize.includes(normalizedItemSize)
+
+                    if (!sizeExistsInProduct) {
+                        await CartProduct.destroy({ where: { id: item.id } })
+                        removedItems.push(item.id)
+                    } else {
+                        const quantity = Number(item.quantity)
+                        const itemPrice = Number(price)
+                        const itemDiscount = Number(discount)
+
+                        const totalPriceProduct = totalPrice({ size: itemSize, price: itemPrice, quantity })
+                        const totalDiscountProduct = totalPrice({ size: itemSize, price: itemDiscount, quantity })
+
+                        await CartProduct.update({ total: totalPriceProduct, totalDiscount: totalDiscountProduct }, { where: { id: item.id } })
+                    }
+                }))
             }
 
             let imageUrls = product.img
