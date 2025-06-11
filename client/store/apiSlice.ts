@@ -136,7 +136,7 @@ interface Auth {
 export const apiSlice = createApi({
     reducerPath: "api",
     baseQuery: fetchBaseQuery({
-        baseUrl: "http://192.168.0.111:5000",
+        baseUrl: "http://localhost:5000",
         prepareHeaders: (headers, { getState }) => {
             if (typeof window !== 'undefined') {
                 const token = localStorage.getItem("token")
