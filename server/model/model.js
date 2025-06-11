@@ -43,7 +43,7 @@ const CartProduct = sequelize.define("cart_product", {
     size: { type: DataTypes.STRING, allowNull: false },
     quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     total: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-    totalDiscount: {type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
+    totalDiscount: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     cartId: { type: DataTypes.STRING, allowNull: false }
 })
 
@@ -72,7 +72,73 @@ const Product = sequelize.define("product", {
     size: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: [] },
     description: { type: DataTypes.TEXT, allowNull: true },
     from: { type: DataTypes.STRING, allowNull: true }
+}, {
+    indexes: [
+        {
+            name: "product_search_idx",
+            fields: [sequelize.literal("unaccent(name)")],
+            using: "GIN",
+            operator: "gin_trgm_ops"
+        },
+        {
+            name: "product_description_idx",
+            fields: [sequelize.literal("unaccent(description)")],
+            using: "GIN",
+            operator: "gin_trgm_ops"
+        }
+    ]
 })
+
+Product.search = async function (query, limit, offset) {
+    const cleanQuery = query.trim()
+    const terms = cleanQuery.split(/\s+/)
+
+    const wordConditions = terms.map((term, i) =>
+        `unaccent(name) ILIKE unaccent(:term${i})`
+    ).join(' AND ')
+
+    const replacements = {
+        fullQuery: `%${cleanQuery}%`,
+        query: cleanQuery,
+        limit,
+        offset
+    }
+
+    terms.forEach((term, i) => {
+        replacements[`term${i}`] = `%${term}%`;
+    })
+
+    return await sequelize.query(
+        `SELECT * FROM "products"
+        WHERE 
+            -- Точное совпадение фразы
+            unaccent(name) ILIKE unaccent(:fullQuery)
+            
+            -- ИЛИ поиск по отдельным словам
+            ${wordConditions ? `OR (${wordConditions})` : ''}
+                
+            -- ИЛИ нечёткий поиск
+            OR similarity(unaccent(name), unaccent(:query)) > 
+                CASE 
+                    WHEN length(:query) < 5 THEN 0.05
+                    ELSE 0.1 
+                END
+        ORDER BY
+            -- Приоритет у точных совпадений
+            CASE 
+                WHEN unaccent(name) ILIKE unaccent(:fullQuery) THEN 1
+                ELSE 0 
+            END DESC,
+            -- Затем по степени схожести
+            similarity(unaccent(name), unaccent(:query)) DESC
+        LIMIT :limit OFFSET :offset`,
+        {
+            replacements,
+            model: Product,
+            mapToModel: true
+        }
+    )
+}
 
 const OrderItem = sequelize.define("order_item", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -102,6 +168,10 @@ const Catalog = sequelize.define("catalog", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: DataTypes.STRING, allowNull: false, unique: true },
     img: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false, defaultValue: [] },
+}, {
+    indexes: [
+        { fields: ["id"] }
+    ]
 })
 
 // User.hasOne(Cart)
@@ -119,16 +189,16 @@ Rating.belongsTo(User)
 Forever.hasMany(ForeverProduct, { foreignKey: 'foreverId', sourceKey: 'sessionId' })
 ForeverProduct.belongsTo(Forever, { foreignKey: 'foreverId', targetKey: 'sessionId' })
 
-Product.hasOne(ForeverProduct)
+Product.hasOne(ForeverProduct, { onDelete: "CASCADE" })
 ForeverProduct.belongsTo(Product)
 
 Cart.hasMany(CartProduct, { foreignKey: 'cartId', sourceKey: 'sessionId' })
 CartProduct.belongsTo(Cart, { foreignKey: 'cartId', sourceKey: 'sessionId' })
 
-Product.hasOne(CartProduct)
+Product.hasOne(CartProduct, { onDelete: "CASCADE" })
 CartProduct.belongsTo(Product)
 
-Catalog.hasMany(Product, { onDelete: "CASCADE" })
+Catalog.hasMany(Product, { onDelete: "CASCADE", as: "Products" })
 Product.belongsTo(Catalog)
 
 Product.hasMany(Rating, { onDelete: "CASCADE", foreignKey: 'productId', as: 'Ratings' })
@@ -138,7 +208,7 @@ Product.hasMany(OrderItem)
 OrderItem.belongsTo(Product)
 
 Order.hasMany(OrderItem)
-OrderItem.belongsTo(Order)  
+OrderItem.belongsTo(Order)
 
 
 export { User, Order, Cart, Forever, CartProduct, ForeverProduct, Product, Rating, Catalog, OrderItem }

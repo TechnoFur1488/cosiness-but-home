@@ -25,16 +25,6 @@ class ProductController {
                 return res.status(400).json({ message: "Не все поля заполнены" })
             }
 
-            if (price <= discount) {
-                await deleteLocalFiles()
-                return res.status(406).json({ message: "Цена не может быть больше скидки" })
-            }
-
-            if (description.trim().length < 100) {
-                await deleteLocalFiles()
-                return res.status(406).json({ message: "Описание не может быть меньше чем 100 симолов" })
-            }
-
             if (files.length === 0) {
                 await deleteLocalFiles()
                 return res.status(406).json({ message: "Не все поля заполнены" })
@@ -59,7 +49,7 @@ class ProductController {
                 return { size, total, squareMeters }
             })
 
-            const product = await Product.create({ userId, img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizes.map(s => s.size), description, from, catalogId })
+            const product = await Product.create({ userId, img: imageUrls, name, price, discount, compound, warp, hight, hardness, size: sizes.map(s => s.size), description: description.trim(), from, catalogId })
 
             await deleteLocalFiles()
 
@@ -158,10 +148,6 @@ class ProductController {
             await Promise.all([
                 deleteDriveFiles(allFile),
                 deleteLocalFiles(),
-
-                Rating.destroy({ where: { productId: id }, individualHooks: true }),
-                CartProduct.destroy({ where: { productId: id } }),
-                ForeverProduct.destroy({ where: { productId: id } })
             ])
 
             await product.destroy({ userId })
@@ -218,16 +204,6 @@ class ProductController {
             if (!name || !from || !price || !compound || !warp || !hight || !hardness || !size || !description || !catalogId) {
                 await deleteLocalFiles()
                 return res.status(400).json({ message: "Не все поля заполнены" })
-            }
-
-            if (price <= discount) {
-                await deleteLocalFiles()
-                return res.status(406).json({ message: "Цена не может быть больше скидки" })
-            }
-
-            if (description.trim().length < 100) {
-                await deleteLocalFiles()
-                return res.status(406).json({ message: "Описание не может быть меньше чем 100 симолов" })
             }
 
             const cartItem = await CartProduct.findAll({ where: { productId: id } })
@@ -296,7 +272,7 @@ class ProductController {
 
             const sizeArray = typeof size === "string" ? size.split(" ") : Array.isArray(size) ? size : []
 
-            product = await Product.update({ userId, img: allImg, name, price, discount, compound, warp, hight, hardness, size: sizeArray, description, from, catalogId }, { where: { id } })
+            product = await Product.update({ userId, img: allImg, name, price, discount, compound, warp, hight, hardness, size: sizeArray, description: description.trim(), from, catalogId }, { where: { id } })
 
             const productUpdate = await Product.findOne({ where: { id } })
 

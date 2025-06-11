@@ -8,7 +8,6 @@ import { GradeRating, DatePost } from "../utils"
 import { useEffect, useState, useRef, useCallback } from "react"
 import { useTokenDecryptor } from "../hooks/use-token-decryptor"
 import { UpdateRating } from "./update-rating"
-import { number } from "zod"
 import { BigRating } from "./big-rating"
 import { RatingLoading } from "../status/rating-loading"
 

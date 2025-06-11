@@ -1,14 +1,16 @@
 "use client"
 
-import { useGetOneProductsQuery } from '@/store/apiSlice'
-import { useParams } from 'next/navigation'
-import React, { useState } from 'react'
-import { ProductOptionImg, ProductInformation, ProductBuy } from './index'
-import { UpdateProduct } from './update-product'
-import { ProductOptionLoading } from '../status/product-option-loading'
+import { useGetOneProductsQuery } from "@/store/apiSlice"
+import { ProductInformation } from "./product-information"
+import { useParams } from "next/navigation"
+import { ProductOptionLoading } from "../status/product-option-loading"
+import { useState } from "react"
+import { ProductOptionImg } from "./product-option-img"
+import { UpdateProduct } from "./update-product"
 
 export const ProductOption = () => {
     const [selectedSize, setSelectedSize] = useState<string>("")
+
     const router = useParams()
     const productId = router.productId
 
@@ -28,6 +30,7 @@ export const ProductOption = () => {
     const [image, setImage] = useState<File[]>([])
     const [existingImages, setExistingImages] = useState<string[]>([])
     const [catalogId, setCatalogId] = useState(0)
+
 
     if (isLoading) return <ProductOptionLoading />
     if (isError) return <div>Error</div>
@@ -56,8 +59,8 @@ export const ProductOption = () => {
     }
 
     return (
-        <div className={"flex justify-between flex-col relative"}>
-            <div>
+        <>
+            <div className={"relative"}>
                 <UpdateProduct
                     isSetEdit={setEdit}
                     isEdit={edit}
@@ -98,7 +101,9 @@ export const ProductOption = () => {
                 isPrice={product.price}
                 isDiscount={product.discount}
                 isProductId={productId}
+
                 isSelectedSize={selectedSize}
+                isSetSelectedSize={setSelectedSize}
 
                 isEdit={edit}
 
@@ -126,8 +131,6 @@ export const ProductOption = () => {
                 editFrom={from}
                 setEditFrom={setFrom}
 
-                selectSize={setSelectedSize}
-
                 editPrice={price}
                 setEditPrice={setPrice}
 
@@ -137,6 +140,6 @@ export const ProductOption = () => {
                 editCatalogId={catalogId}
                 setEditCatalogId={setCatalogId}
             />
-        </div>
+        </>
     )
 }

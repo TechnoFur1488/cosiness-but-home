@@ -11,6 +11,7 @@ import { useState } from "react"
 import { Trash2 } from "lucide-react"
 import { Button } from "../ui/button"
 import { Textarea } from "../ui/textarea"
+import { CatalogSelect } from "./catalog-select"
 
 export const CreateProduct = () => {
     const [postProduct] = useCreateProductMutation()
@@ -277,7 +278,10 @@ export const CreateProduct = () => {
                             <FormItem className={"mb-5"}>
                                 <FormLabel>Выберите каталог</FormLabel>
                                 <FormControl>
-                                    <Input {...field} type="number" />
+                                    <CatalogSelect 
+                                        value={field.value?.toString()} 
+                                        onChange={field.onChange}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

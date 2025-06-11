@@ -8,7 +8,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { HiddenScrol } from '../utils'
-import { ProductLoading } from '../status/product-loading'
+import { FavoriteLoading } from '../status/favorite-loading'
 
 interface Props {
     className?: string
@@ -48,7 +48,7 @@ export const Favorite = ({ className }: Props) => {
 
     HiddenScrol(scroll)
 
-    if (isLoading) return <ProductLoading />
+    if (isLoading) return <FavoriteLoading />
     if (isError) return <h1>Ошибка</h1>
 
     return (
@@ -58,7 +58,7 @@ export const Favorite = ({ className }: Props) => {
                 const product = el.product
 
                 return (
-                    <div key={el.id} className="flex items-center justify-between relative group bg-white p-2 rounded-2xl shadow">
+                    <div key={el.id} className="sm:flex sm:items-center sm:justify-between relative group bg-white p-2 rounded-2xl shadow space-y-3 sm:sm-y-0">
                         <Link className={"flex items-center flex-1"} href={`/product/${product.id}`}>
                             <div className={"relative w-[120px] h-[80px] min-w-[120px]"}>
                                 <Image
@@ -99,7 +99,7 @@ export const Favorite = ({ className }: Props) => {
                             >
                                 <Heart width={24} height={24} fill={'#FF3B30'} color={'#FF3B30'} />
                             </button>
-                            <div className="w-[140px]">
+                            <div className="sm:w-[140px] w-full">
                                 <AddCart isPrice={product.price} isSize={product.size} isId={product.id} />
                             </div>
                         </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect } from "react"
 import Image from "next/image"
 
 declare global {
@@ -10,8 +10,7 @@ declare global {
     }
 }
 
-export const Contacts = () => {
-    const [mapInitialized, setMapInitialized] = useState(false)
+export const    Contacts = () => {
 
     const initMap = useCallback(() => {
         window.ymaps.ready(() => {
@@ -70,7 +69,7 @@ export const Contacts = () => {
     return (
         <div className={"space-y-5 my-20"}>
             <h1 className={"font-bold text-[32px]"}>Контакты</h1>
-            <div id='map' className={"w-full h-[522px] bg-white overflow-hidden rounded-2xl shadow"} />
+            <div id='map' className={"w-full sm:h-[522px] h-90 bg-white overflow-hidden rounded-2xl shadow"} />
             <Image className={"rounded-2xl shadow"} src={"/photo_2025-06-01_12-48-02.jpg"} alt="картинка" width={1000} height={500} />
             <h2 className={"font-bold text-[22px] mt-"}>Где мы находимся</h2>
             <p>МКАД, 14-й километр, 10с2, место АНК-81</p>

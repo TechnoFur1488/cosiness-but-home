@@ -45,9 +45,9 @@ export const RatingStatistics = ({ productId }: Props) => {
     const ratingParcentags = calculateRating()
 
     return (
-        <>
+        <div>
             <div className='flex flex-col space-y-2'>
-                {averageRating ? <span className={"font-extrabold text-4xl"}>{averageRating.toFixed(1)}</span> : <span className={"font-extrabold text-4xl"}>Отзывов пока что нет</span>}
+                {averageRating ? <span className={"text-[18px] lg:text-[22px] font-bold"}>{averageRating.toFixed(1)}</span> : <span className={"text-[18px] lg:text-[22px] font-bold"}>Отзывов пока что нет</span>}
                 <div>
                     {GradeRating(averageRating)}
                 </div>
@@ -56,30 +56,30 @@ export const RatingStatistics = ({ productId }: Props) => {
             <div className={"w-85"}>
                 <div className={"flex items-center space-x-3"}>
                     <span className={"w-2"}>5</span>
-                    <Progress className={"w-62"} value={ratingParcentags[5]} />
-                    <span className="text-sm text-gray-500">{Math.round(ratingParcentags[5])}%</span>
+                    <Progress className={"lg:w-62"} value={ratingParcentags[5]} />
+                    <span className="text-sm text-gray-500">{!isNaN(ratingParcentags[5]) ? Math.round(ratingParcentags[5]): "0"}%</span>
                 </div>
                 <div className={"flex items-center space-x-3"}>
                     <span className={"w-2"}>4</span>
-                    <Progress className={"w-62"} value={ratingParcentags[4]} />
-                    <span className="text-sm text-gray-500">{Math.round(ratingParcentags[4])}%</span>
+                    <Progress className={"lg:w-62"} value={ratingParcentags[4]} />
+                    <span className="text-sm text-gray-500">{!isNaN(ratingParcentags[4]) ? Math.round(ratingParcentags[4]): "0"}%</span>
                 </div>
                 <div className={"flex items-center space-x-3"}>
                     <span className={"w-2"}>3</span>
-                    <Progress className={"w-62"} value={ratingParcentags[3]} />
-                    <span className="text-sm text-gray-500">{Math.round(ratingParcentags[3])}%</span>
+                    <Progress className={"lg:w-62"} value={ratingParcentags[3]} />
+                    <span className="text-sm text-gray-500">{!isNaN(ratingParcentags[3]) ? Math.round(ratingParcentags[3]): "0"}%</span>
                 </div>
                 <div className={"flex items-center space-x-3"}>
                     <span className={"w-2"}>2</span>
-                    <Progress className={"w-62"} value={ratingParcentags[2]} />
-                    <span className="text-sm text-gray-500">{Math.round(ratingParcentags[2])}%</span>
+                    <Progress className={"lg:w-62"} value={ratingParcentags[2]} />
+                    <span className="text-sm text-gray-500">{!isNaN(ratingParcentags[2]) ? Math.round(ratingParcentags[2]): "0"}%</span>
                 </div>
                 <div className={"flex items-center space-x-3"}>
                     <span className={"w-2"}>1</span>
-                    <Progress className={"w-62"} value={ratingParcentags[1]} />
-                    <span className="text-sm text-gray-500">{Math.round(ratingParcentags[1])}%</span>
+                    <Progress className={"lg:w-62"} value={ratingParcentags[1]} />
+                    <span className="text-sm text-gray-500">{!isNaN(ratingParcentags[1]) ? Math.round(ratingParcentags[1]): "0"}%</span>
                 </div>
             </div>
-        </>
+        </div>
     )
 }

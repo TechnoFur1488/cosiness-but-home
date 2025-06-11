@@ -10,6 +10,7 @@ const upload = multer({ dest: 'uploads/' })
 router.post("/", authMiddleware, upload.array("img", 1), catalogController.create)
 router.get("/", catalogController.getAllCatalog)
 router.get("/:catalogId", catalogController.getAllCatalogProducts)
+router.get("/one-catalog/:id", catalogController.getOneCatalog)
 router.put("/:id", authMiddleware, upload.array("img", 1), catalogController.updateCatalog)
 router.delete("/:id", authMiddleware, upload.array("img", 1), catalogController.deleteCatalog)
 

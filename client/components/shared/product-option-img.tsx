@@ -103,7 +103,7 @@ export const ProductOptionImg = ({ isImg, isEdit, editImage, setEditImage, isExi
                 </>
                 :
                 <>
-                    <div className="flex gap-1">
+                    <div className={"flex gap-1"}>
                         <Swiper
                             loop={true}
                             className={'rounded-2xl w-[500px]'}
@@ -114,7 +114,7 @@ export const ProductOptionImg = ({ isImg, isEdit, editImage, setEditImage, isExi
                         >
                             {isImg.map((el, i) => (
                                 <SwiperSlide key={i}>
-                                    <div className={"relative h-[700px] object-cover"}>
+                                    <div className={"relative sm:h-[400px] md:h-[550px] lg:h-[700px] h-[250px] object-cover"}>
                                         <button onClick={() => setBigImg(true)}>
                                             <Image
                                                 className={"rounded-2xl"}
@@ -140,7 +140,7 @@ export const ProductOptionImg = ({ isImg, isEdit, editImage, setEditImage, isExi
                             }}
                             modules={[Grid, Thumbs]}
                             watchSlidesProgress={true}
-                            className="w-[500px] h-[700px]"
+                            className="w-[500px] sm:h-[400px] md:h-[550px] h-[250px] lg:h-[700px]"
                         >
                             {isImg.map((el, i) => (
                                 <SwiperSlide key={i}>
@@ -158,13 +158,14 @@ export const ProductOptionImg = ({ isImg, isEdit, editImage, setEditImage, isExi
                         </Swiper>
                     </div>
 
+
                     {bigImg && (
                         <BigImg isBigImg={bigImg} isSetBigImg={setBigImg} className='left-0 top-0 w-full h-screen fixed z-[200]'>
                             <div className="h-full w-full flex items-center justify-center">
-                                <Swiper className={"max-w-[1000px] rounded-2xl"} slidesPerView={1} spaceBetween={30} modules={[Navigation]}>
+                                <Swiper className={"max-w-[1000px] lg:h-[1200px] h-150 rounded-2xl"} slidesPerView={1} spaceBetween={30} modules={[Navigation]}>
                                     {isImg.map((el, i) => (
                                         <SwiperSlide className="flex items-center justify-center rounded-2xl" key={i}>
-                                            <div className='h-[1200px] w-[1000px] relative'>
+                                            <div className='lg:h-[1200px] h-150 lg:w-[1000px] w-100 relative'>
                                                 <Image className="object-cover rounded-2xl" src={el} alt='Картинки' fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
                                             </div>
                                         </SwiperSlide>

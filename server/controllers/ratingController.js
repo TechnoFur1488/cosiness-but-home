@@ -62,7 +62,7 @@ class RatingController {
         }
     }
 
-    async getAllRating(req, res) {
+    async getAllRatingProduct(req, res) {
         const { productId } = req.params
 
         try {
@@ -98,6 +98,24 @@ class RatingController {
             return res.status(500).json({ message: "Ошибка сервера" })
         }
 
+    }
+
+    async getAllRating(req, res) {
+        const offset = parseInt(req.query.offset) || 0
+        const limit = 10
+
+        try {
+            const { count, rows: rating } = await Rating.findAndCountAll({ limit, offset, order: [["createdAt", "DESC"]] })
+
+            const hasMore = offset + limit < count
+            const nextOffset = hasMore ? offset + limit : null
+
+            return res.status(200).json({ rating, hasMore, nextOffset })
+
+        } catch (err) {
+            console.error(err)
+            return res.status(500).json({ message: "Ошибка сервера" })
+        }
     }
 
     async getOneMyRating(req, res) {

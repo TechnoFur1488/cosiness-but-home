@@ -66,23 +66,23 @@ export const CartForm = ({ refetch }: Props) => {
     const isFormValid = form.formState.isValid;
 
     return (
-        <div>
+        <div className="w-full">
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)}>
-                    <div className={"space-y-3"}>
-                        <div className={"bg-[#ffffff] space-y-4 w-116 px-8 py-4 rounded-2xl shadow"}>
-                            <h1 className='mb-3 text-[32px] font-bold'>Данные для потверждения покупки</h1>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="bg-white rounded-2xl shadow p-4 md:p-6">
+                        <h1 className="text-2xl md:text-3xl font-bold mb-6">Данные для подтверждения покупки</h1>
+                        <div className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name='mail'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Ваш Email</FormLabel>
+                                        <FormLabel className="text-sm font-medium">Email</FormLabel>
                                         <FormControl>
-                                            <Input type='email' {...field} />
+                                            <Input type='email' {...field} className="w-full" />
                                         </FormControl>
-                                        <FormDescription>
-                                            На эту почту прийдет информация о покупке (проверьте спам)
+                                        <FormDescription className="text-xs text-gray-500">
+                                            На эту почту придет информация о покупке (проверьте спам)
                                         </FormDescription>
                                         <FormMessage className="text-xs text-red-500" />
                                     </FormItem>
@@ -93,11 +93,11 @@ export const CartForm = ({ refetch }: Props) => {
                                 name='name'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Ваше имя</FormLabel>
+                                        <FormLabel className="text-sm font-medium">Имя</FormLabel>
                                         <FormControl>
-                                            <Input type='text' {...field} />
+                                            <Input type='text' {...field} className="w-full" />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage className="text-xs text-red-500" />
                                     </FormItem>
                                 )}
                             />
@@ -106,10 +106,11 @@ export const CartForm = ({ refetch }: Props) => {
                                 name='adress'
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Ваш адресс</FormLabel>
+                                        <FormLabel className="text-sm font-medium">Адрес</FormLabel>
                                         <FormControl>
-                                            <Input type='text' {...field} />
+                                            <Input type='text' {...field} className="w-full" />
                                         </FormControl>
+                                        <FormMessage className="text-xs text-red-500" />
                                     </FormItem>
                                 )}
                             />
@@ -118,92 +119,129 @@ export const CartForm = ({ refetch }: Props) => {
                                 name="phone"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Ваш номер телефона</FormLabel>
+                                        <FormLabel className="text-sm font-medium">Номер телефона</FormLabel>
                                         <FormControl>
-                                            <IMaskInput className={cn(
-                                                "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-                                                "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-                                                "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                                            )} mask="+7 (000) 000-00-00" {...field} />
+                                            <IMaskInput
+                                                className={cn(
+                                                    "w-full px-3 py-2 rounded-md border border-gray-200",
+                                                    "focus:outline-none focus:ring-2 focus:ring-blue-500/50",
+                                                    "placeholder:text-gray-400 text-sm"
+                                                )}
+                                                mask="+7 (000) 000-00-00"
+                                                {...field}
+                                            />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage className="text-xs text-red-500" />
                                     </FormItem>
                                 )}
                             />
                         </div>
-                        <div className={"bg-[#ffffff] w-116 px-8 py-4 rounded-2xl shadow"}>
-                            <FormField
-                                control={form.control}
-                                name="delivery"
-                                render={({ field }) => (
-                                    <FormItem className='py-4'>
-                                        <FormLabel>Способ доставки</FormLabel>
-                                        <FormControl className='pt-3'>
-                                            <RadioGroup className='flex justify-between' onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormItem className={"flex items-center "}>
-                                                    <FormControl>
-                                                        <RadioGroupItem value="Курьером (по Москве)" />
-                                                    </FormControl>
-                                                    <FormLabel>Курьером (по Москве)</FormLabel>
-                                                </FormItem>
-                                                <FormItem className='flex items-center'>
-                                                    <FormControl>
-                                                        <RadioGroupItem value="Самовывоз" />
-                                                    </FormControl>
-                                                    <FormLabel>Самовывоз</FormLabel>
-                                                </FormItem>
-                                            </RadioGroup>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className={"bg-[#ffffff] w-116 px-8 py-4 rounded-2xl shadow"}>
-                            <FormField
-                                control={form.control}
-                                name="pay"
-                                render={({ field }) => (
-                                    <FormItem className='py-4'>
-                                        <FormLabel>Способ Оплаты</FormLabel>
-                                        <FormControl className='pt-3'>
-                                            <RadioGroup className='flex justify-between' onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormItem className={"flex items-center"}>
-                                                    <FormControl>
-                                                        <RadioGroupItem value='Наличными' />
-                                                    </FormControl>
-                                                    <FormLabel>Наличными</FormLabel>
-                                                </FormItem>
-                                                <FormItem className={"flex items-center "}>
-                                                    <FormControl>
-                                                        <RadioGroupItem value='Переводом' />
-                                                    </FormControl>
-                                                    <FormLabel>Переводом</FormLabel>
-                                                </FormItem>
-                                            </RadioGroup>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow p-4 md:p-6">
                         <FormField
                             control={form.control}
-                            name="policy"
+                            name="delivery"
                             render={({ field }) => (
-                                <FormItem className={'flex flex-col my-3'}>
-                                    <div className={'flex'}>
-                                        <FormControl className='cursor-pointer'>
-                                            <Checkbox defaultChecked={false} checked={field.value} onCheckedChange={field.onChange} />
-                                        </FormControl>
-                                        <FormLabel className='pl-3 flex items-center'>Соглашаюсь на обработку своих<Link className=' text-gray-600 underline' href={"/personal"}>персональных данных</Link></FormLabel>
-                                    </div>
-                                    <FormMessage />
+                                <FormItem>
+                                    <FormLabel className="text-sm font-medium block mb-3">Способ доставки</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup
+                                            className="flex flex-col sm:flex-row gap-4 sm:gap-6"
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                        >
+                                            <FormItem className="flex items-center space-x-2">
+                                                <FormControl>
+                                                    <RadioGroupItem value="Курьером (по Москве)" />
+                                                </FormControl>
+                                                <FormLabel className="text-sm">Курьером (по Москве)</FormLabel>
+                                            </FormItem>
+                                            <FormItem className="flex items-center space-x-2">
+                                                <FormControl>
+                                                    <RadioGroupItem value="Самовывоз" />
+                                                </FormControl>
+                                                <FormLabel className="text-sm">Самовывоз</FormLabel>
+                                            </FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage className="text-xs text-red-500" />
                                 </FormItem>
                             )}
                         />
-                        <Button disabled={!isFormValid} className={"bg-black w-full shadow  cursor-pointer hover:bg-[#222222] transition duration-150"} type="submit">Оформить</Button>
                     </div>
+
+                    <div className="bg-white rounded-2xl shadow p-4 md:p-6">
+                        <FormField
+                            control={form.control}
+                            name="pay"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-medium block mb-3">Способ оплаты</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup
+                                            className="flex flex-col sm:flex-row gap-4 sm:gap-6"
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                        >
+                                            <FormItem className="flex items-center space-x-2">
+                                                <FormControl>
+                                                    <RadioGroupItem value="Наличными" />
+                                                </FormControl>
+                                                <FormLabel className="text-sm">Наличными</FormLabel>
+                                            </FormItem>
+                                            <FormItem className="flex items-center space-x-2">
+                                                <FormControl>
+                                                    <RadioGroupItem value="Переводом" />
+                                                </FormControl>
+                                                <FormLabel className="text-sm">Переводом</FormLabel>
+                                            </FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage className="text-xs text-red-500" />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    <FormField
+                        control={form.control}
+                        name="policy"
+                        render={({ field }) => (
+                            <FormItem>
+                                <div className="flex items-start space-x-3">
+                                    <FormControl>
+                                        <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                            className="mt-1"
+                                        />
+                                    </FormControl>
+                                    <FormLabel className="text-sm">
+                                        <span>
+                                            Соглашаюсь на обработку своих 
+                                            <Link className="text-blue-600 hover:underline pl-1" href="/personal">
+                                                 персональных данных
+                                            </Link>
+                                        </span>
+                                    </FormLabel>
+                                </div>
+                                <FormMessage className="text-xs text-red-500 mt-1" />
+                            </FormItem>
+                        )}
+                    />
+
+                    <Button
+                        disabled={!isFormValid}
+                        className={cn(
+                            "w-full py-3 text-white font-medium rounded-xl",
+                            "bg-black hover:bg-[#222222] transition-colors duration-200",
+                            "disabled:opacity-50 disabled:cursor-not-allowed"
+                        )}
+                        type="submit"
+                    >
+                        Оформить заказ
+                    </Button>
                 </form>
             </Form>
         </div>

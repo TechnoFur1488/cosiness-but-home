@@ -12,7 +12,7 @@ export const CatalogLoading = () => {
         )
     }
     return (
-        <div className={"grid grid-cols-4 gap-x-5 gap-y-7"}>
+        <div className={"grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6"}>
             {skeletonLoading}
         </div>
     )

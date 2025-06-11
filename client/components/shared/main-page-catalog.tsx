@@ -10,23 +10,27 @@ export const MainPageCatalog = () => {
     if (isError) return <p>Error</p>
 
     return (
-        <>
+        <div className={"grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 sm:grid-cols-3 lg:grid-cols-4"}>
             {data?.catalogs.slice(0, 4).map(el => (
-                <div key={el.id} className={"relative w-[223px] h-[250px] flex flex-col"}>
-                    <Link className="font-medium hover:text-gray-600 transition-colors bg-white p-2 rounded-2xl shadow" href={`/catalog-products/${el.id}`}>
-                        <div className="relative w-full h-[200px] mb-3">
+                <div key={el.id} className={"relative w-full shadow bg-white h-full rounded-2xl"}>
+                    <Link 
+                        className="block font-medium p-2 sm:p-3" 
+                        href={`/catalog-products/${el.id}`}
+                    >
+                        <div className="relative w-full aspect-square mb-2">
                             <Image
                                 src={el.img[0]}
-                                alt="Product image"
+                                alt={el.name}
                                 fill
                                 className="object-cover rounded-xl"
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                                priority
                             />
                         </div>
-                        <span>{el.name}</span>
+                        <span className={"block text-sm sm:text-base line-clamp-2"}>{el.name}</span>
                     </Link>
                 </div>
             ))}
-        </>
+        </div>
     )
 }

@@ -1,58 +1,38 @@
 "use client"
 
-import { useLazyGetProductsCatalogQuery } from '@/store/apiSlice'
-import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLazyGetProductsSearchQuery } from "@/store/apiSlice"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { ProductLoading } from "../status/product-loading"
+import Link from "next/link"
 import Image from 'next/image'
-import { RatingProductsStars } from './rating-products-stars'
-import { AddCart } from './add-cart'
-import { DeleteProductBtn } from './delete-product-btn'
-import { FavoriteProduct } from './favorite-product'
-import { ProductLoading } from '../status/product-loading'
-import { cn } from '@/lib/utils'
+import { RatingProductsStars } from "./rating-products-stars"
+import { FavoriteProduct } from "./favorite-product"
+import { DeleteProductBtn } from "./delete-product-btn"
+import { AddCart } from "./add-cart"
+import { useSearchParams } from "next/navigation"
+import { cn } from "@/lib/utils"
 
-interface Props {
-    catalogId: number
-    initialData: {
-        products: Products[]
-        hasMore: boolean
-        nextOffset: number
-    }
-}
 
-interface Products {
-    id: number,
-    img: string[],
-    name: string,
-    price: number,
-    discount: number,
-    size: string[]
-    catalogId: number
-}
-
-export const ProductCatalog = ({ catalogId, initialData }: Props) => {
-    const catalogIdProduct = Number(catalogId)
-    const [trigger, { data, isLoading, isError, isFetching }] = useLazyGetProductsCatalogQuery()
+export const SearchProducts = () => {
+    const [triger, { data, isLoading, isError, isFetching }] = useLazyGetProductsSearchQuery()
+    const searchParams = useSearchParams()
+    const currentQuerySearch = searchParams.get("query") || ""
     const [currentOffset, setCurrentOffset] = useState(0)
     const observerTarget = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        if (initialData) {
-            trigger({ offset: 0, catalogId: catalogIdProduct }, true)
-        } else {
-            trigger({ offset: 0, catalogId: catalogIdProduct })
-        }
-    }, [trigger, initialData, catalogIdProduct])
+        triger({ offset: 0, query: currentQuerySearch }, true)
+    }, [triger, currentQuerySearch])
 
     const loadMore = useCallback(() => {
         if (!isFetching && data?.hasMore) {
             setCurrentOffset(data.nextOffset)
-            trigger({
-                catalogId: catalogIdProduct,
-                offset: data.nextOffset
+            triger({
+                offset: data.nextOffset,
+                query: currentQuerySearch
             })
         }
-    }, [isFetching, data, trigger, catalogIdProduct])
+    }, [isFetching, data, triger, currentQuerySearch])
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -78,17 +58,17 @@ export const ProductCatalog = ({ catalogId, initialData }: Props) => {
         }
     }, [loadMore])
 
-    const displayData = data || initialData
-
     if (isLoading && !data) return <ProductLoading />
-    if (isError) return <h1>Ошибка при загрузке отзывов</h1>
+    if (isError) return <h1>Ошибка при загрузке товаров</h1>
     if (!data?.products.length) return <div className={"text-center bg-white rounded-2xl shadow space-y-2 p-3"}>
         <h1>Нет товаров</h1>
     </div>
+
     return (
         <>
+            <h1 className={"text-2xl sm:text-3xl md:text-[32px] font-bold pb-2 sm:pb-3 md:pb-4"}>Товаров найдено: {data.total}</h1>
             <div className={"grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-2 gap-y-2"}>
-                {displayData.products.map((el, i) => {
+                {data.products.map((el, i) => {
                     return (
                         <div key={`${el.id}-${i}`} className={"bg-white p-2 rounded-2xl shadow sm:h-114 h-85 flex justify-between flex-col relative"}>
                             <Link href={`/product/${el.id}`}>

@@ -19,7 +19,6 @@ import { RatingFormValues } from '../forms/rating-form'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { ScrollArea } from '../ui/scroll-area'
-import { set } from 'react-hook-form'
 
 interface Props {
     isId: number

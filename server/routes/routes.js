@@ -6,6 +6,7 @@ import orderRouter from "./orderRouter.js"
 import cartRouter from "./cartRouter.js"
 import foreverRouter from "./foreverRouter.js"
 import userRouter from "./userRouter.js"
+import searchRouter from "./searchRouter.js"
 import { cartMiddleware } from "../middleware/cartMiddleware.js"
 import { foreverMiddleware } from "../middleware/foreverMiddleware.js"
 import { ratingMiddleware } from "../middleware/ratingMiddleware.js"
@@ -19,5 +20,6 @@ router.use("/order", cartMiddleware, orderRouter)
 router.use("/cart", cartMiddleware, cartRouter)
 router.use("/forever", foreverMiddleware, foreverRouter)
 router.use("/user", userRouter)
+router.use("/search", searchRouter)
 
 export default router

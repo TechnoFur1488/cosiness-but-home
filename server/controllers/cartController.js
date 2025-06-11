@@ -75,19 +75,44 @@ class CartController {
     }
 
     async updateCart(req, res) {
+        const { id } = req.params
+        const { quantity } = req.body
+        const sessionId = req.sessionId
+
+        if (!id) {
+            return res.status(404).json({ message: "Такого товара в корзине не существует" })
+        }
+
+        if (!quantity) {
+            return res.status(400).json({ message: "Не все поля заполнены" })
+        }
+
         try {
-            const { quantity, size } = req.body
-            const sessionId = req.sessionId
 
-            const product = await Product.findByPk(productId)
+            if (quantity < 1) {
+                return res.status(400).json({ message: "Количество товара не может быть меньше 1" })
+            }
 
-            const [w, l] = size.split("x").map(Number)
-            const squareMeters = w * l
-            const price = product.price * squareMeters
-            const total = price * quantity
+            const cart = await CartProduct.findOne({ where: { id, cartId: sessionId } })
 
+            if (!cart) {
+                return res.status(404).json({ message: "Такого товара в корзине не существует" })
+            }
 
-            const cartItem = await CartProduct.update({ where: { cartId: sessionId } })
+            const product = await Product.findOne({ where: { id: cart.productId } })
+
+            if (!product) {
+                return res.status(404).json({ message: "Такого товара не существует" })
+            }
+
+            const totalPriceProduct = totalPrice({ size: cart.size, price: product.price, quantity })
+            const totalDiscountProduct = totalPrice({ size: cart.size, price: product.discount, quantity })
+
+            await CartProduct.update({ quantity, total: totalPriceProduct, totalDiscount: totalDiscountProduct }, { where: { id, cartId: sessionId } })
+
+            const updateCart = await CartProduct.findOne({ where: { id, cartId: sessionId }, include: [Product] })
+
+            return res.status(200).json({ updateCart })
 
         } catch (err) {
             console.error(err)

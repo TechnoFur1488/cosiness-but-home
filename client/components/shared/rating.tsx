@@ -26,6 +26,7 @@ export const Rating = () => {
     const [deleteRating] = useDeleteRatingMutation()
     const [bigRating, setBigRating] = useState(false)
     const [ratingId, setRatingId] = useState<number>(0)
+    const [lenghtRating, SetLenghtRating] = useState<number>(0)
 
     const handleDelete = async (id: number) => {
         try {
@@ -51,19 +52,21 @@ export const Rating = () => {
                     <BigRating isBigRating={bigRating} isSetBigRating={setBigRating} ratingId={ratingId} />
                 </div>
             }
-            <div className={"space-y-3"}>
-                <h2 className={"font-bold text-[18px]"}>Рейтинг товара</h2>
-                <div className={"flex items-center space-x-5"}>
+            <div className={"space-y-2 lg:space-y-3"}>
+                <h2 className={"font-bold text-[16px] lg:text-[18px]"}>Рейтинг товара</h2>
+                <div className={"flex items-center space-x-3 lg:space-x-5"}>
                     <RatingStatistics productId={productId} />
                 </div>
                 <RatingMy productId={productId} isHandleDelete={handleDelete} isMaxLengthText={maxLengthText} isSetBigRating={setBigRating} isSetRatingId={setRatingId} />
-                <h2 className={"font-bold text-[18px]"}>Отзывы клиентов</h2>
-                <div className={"space-y-5"}>
-                    <RatingProduct productId={productId} setBigRating={setBigRating} setRatingId={setRatingId} maxLengthText={maxLengthText} handleDelete={handleDelete} />
+                <h2 className={"font-bold text-[16px] lg:text-[18px]"}>{lenghtRating >= 1 ? "Отзывы клиентов" : "Отзывов пока-что нету, будьте первым"}</h2>
+                <div className={"space-y-3 lg:space-y-5"}>
+                    <RatingProduct productId={productId} isLenghtRating={SetLenghtRating} setBigRating={setBigRating} setRatingId={setRatingId} maxLengthText={maxLengthText} handleDelete={handleDelete} />
                 </div>
-                <div className={"w-full text-end"}>
-                    <Link href={`/rating/${productId}`}>Смотреть все отзывы</Link>
-                </div>
+                {lenghtRating >= 10 &&
+                    <div className={"w-full text-end"}>
+                        <Link href={`/rating/${productId}`} className="text-sm lg:text-base hover:underline">Смотреть все отзывы</Link>
+                    </div>
+                }
             </div>
         </>
     )

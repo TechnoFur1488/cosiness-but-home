@@ -1,4 +1,4 @@
-import { Catalog, Product } from "../model/model.js"
+import { Catalog, Product, Rating } from "../model/model.js"
 import { deleteDriveFiles, deleteLocalFiles, postDriveFiles } from "../services/googleDriveServices.js"
 import "dotenv"
 
@@ -47,8 +47,20 @@ class CatalogController {
 
     async getAllCatalog(req, res) {
         try {
-            const catalogs = await Catalog.findAll()
+            const catalogs = await Catalog.findAll({ order: [["createdAt", "DESC"]] })
             return res.status(200).json({ catalogs })
+        } catch (err) {
+            console.error(err)
+            return res.status(500).json({ message: "Ошибка сервера" })
+        }
+    }
+
+    async getOneCatalog(req, res) {
+        const { id } = req.params
+
+        try {
+            const catalog = await Catalog.findOne({ where: { id }, attributes: ["name"] })
+            return res.status(200).json({ catalog })
         } catch (err) {
             console.error(err)
             return res.status(500).json({ message: "Ошибка сервера" })
@@ -125,7 +137,9 @@ class CatalogController {
 
             await deleteLocalFiles()
 
-            return res.status(200).json({ message: "Каталог успешно обновлен" })
+            const catalogResult = await Catalog.findByPk(id) 
+
+            return res.status(200).json({catalogResult, message: "Каталог успешно обновлен" })
         } catch (err) {
             console.error(err)
             return res.status(500).json({ message: "Ошибка сервера" })
@@ -149,23 +163,27 @@ class CatalogController {
 
             const catalog = await Catalog.findByPk(id, {
                 include: [{
-                    model: Product
+                    model: Product,
+                    as: "Products",
+                    include: [{
+                        model: Rating,
+                        as: "Ratings"
+                    }]
                 }]
             })
 
             const allFile = [
                 ...(catalog.img || []),
-                ...(catalog.Product?.flatMap(product => product.img) || [])
+                ...(catalog.Products?.flatMap(product => product.img) || []),
+                ...(catalog.Products?.flatMap(product => product.Ratings?.flatMap(rating => rating.img) || []) || [])
             ]
-
+            
             await Promise.all([
                 deleteDriveFiles(allFile),
                 deleteLocalFiles(),
-
-                Product.destroy({ where: { catalogId: id }, individualHooks: true })
             ])
 
-            await Catalog.destroy({ where: { id }, userId })
+            await catalog.destroy({ where: { id }, userId })
 
             return res.status(200).json({ message: "Каталог успешно удален" })
         } catch (err) {
@@ -179,7 +197,7 @@ class CatalogController {
             const { catalogId } = req.params
 
             const offset = parseInt(req.query.offset) || 0
-            const limit = 12
+            const limit = 15
 
             if (!catalogId) {
                 return res.status(404).json({ message: "Такого каталога не существует" })

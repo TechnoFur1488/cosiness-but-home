@@ -13,7 +13,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use(cors({
-    origin: ["http://localhost:3000"],
+    origin: ["http://192.168.0.111:3000"],
     credentials: true,
     methods: ["POST", "GET", "PUT", "DELETE"]
 }))
@@ -24,7 +24,10 @@ const start = async () => {
     try {
         await sequelize.authenticate()
         await sequelize.sync({ alter: true })
-        app.listen(PORT, () => console.log(`Сервер работает на порту ${PORT}`))
+        app.listen(PORT, () => {
+            console.log(`Сервер работает на порту ${PORT}`)
+            console.log(`Доступен в локальной сети по IP: http://ВАШ_ЛОКАЛЬНЫЙ_IP:${PORT}`)
+        })
     } catch (e) {
         console.error(e)
     }

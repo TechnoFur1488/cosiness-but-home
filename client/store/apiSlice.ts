@@ -41,9 +41,16 @@ interface PostRating {
 }
 
 interface ProductsResponse {
-    products: Products[];
-    hasMore: boolean;
-    nextOffset: number;
+    products: Products[]
+    hasMore: boolean
+    nextOffset: number
+}
+
+interface ProductSearch {
+    products: Products[]
+    hasMore: boolean
+    nextOffset: number
+    total: number
 }
 
 interface Order {
@@ -85,7 +92,7 @@ interface PostCart {
 
 interface Cart {
     id: number
-    size: Array<string>
+    size: string
     quantity: number
     total: number
     totalDiscount: number
@@ -93,6 +100,7 @@ interface Cart {
     product: {
         name: string
         img: Array<string>
+        size: string[]
     }
 }
 
@@ -128,7 +136,7 @@ interface Auth {
 export const apiSlice = createApi({
     reducerPath: "api",
     baseQuery: fetchBaseQuery({
-        baseUrl: process.env.NEXT_PUBLIC_APP_API_URL,
+        baseUrl: "http://192.168.0.111:5000",
         prepareHeaders: (headers, { getState }) => {
             if (typeof window !== 'undefined') {
                 const token = localStorage.getItem("token")
@@ -139,7 +147,7 @@ export const apiSlice = createApi({
             return headers
         }
     }),
-    tagTypes: ["Product", "Rating", "Order", "Catalog", "Cart", "Forever", "User"],
+    tagTypes: ["Product", "Rating", "Order", "Catalog", "Cart", "Forever", "User", "Search"],
     endpoints: (builder) => ({
 
         createProduct: builder.mutation<Products, FormData>({
@@ -170,7 +178,7 @@ export const apiSlice = createApi({
                 return currentArg !== previousArg
             }
         }),
-        getNewProduct: builder.query<{products: Products[]}, void>({
+        getNewProduct: builder.query<{ products: Products[] }, void>({
             query: () => "/api/products/new-products",
             providesTags: ["Product"]
         }),
@@ -194,6 +202,7 @@ export const apiSlice = createApi({
             providesTags: ["Product"]
         }),
 
+
         registration: builder.mutation<Auth, Partial<Auth>>({
             query: (user) => ({
                 url: "/api/user/registration",
@@ -215,6 +224,26 @@ export const apiSlice = createApi({
         getRating: builder.query<{ rating: Rating[] }, number>({
             query: (productId) => `/api/rating/${productId}`,
             providesTags: ["Rating"]
+        }),
+        getAllRating: builder.query<{ rating: Rating[], hasMore: boolean, nextOffset: number }, { offset: number }>({
+            query: ({ offset = 0 }) => `/api/rating?offset=${offset}`,
+            providesTags: ["Rating"],
+            serializeQueryArgs: ({ endpointName }) => {
+                return endpointName
+            },
+            merge: (currentCache, newItems, { arg }) => {
+                if (arg.offset === 0) {
+                    return newItems
+                }
+                return {
+                    rating: [...currentCache.rating, ...newItems.rating],
+                    hasMore: newItems.hasMore,
+                    nextOffset: newItems.nextOffset
+                }
+            },
+            forceRefetch: ({ currentArg, previousArg }) => {
+                return currentArg !== previousArg
+            }
         }),
         getRatingLazy: builder.query<RatingResponse, { productId: number, offset: number }>({
             query: ({ productId, offset = 0 }) => `/api/rating/${productId}/lazy-rating?offset=${offset}`,
@@ -279,17 +308,75 @@ export const apiSlice = createApi({
             query: () => "/api/catalog",
             providesTags: ["Catalog"]
         }),
+        getOneCatalog: builder.query<{ catalog: Catalog }, number>({
+            query: (id) => `/api/catalog/one-catalog/${id}`,
+            providesTags: ["Catalog"]
+        }),
         getProductsCatalog: builder.query<ProductsResponse, { catalogId: number, offset: number }>({
-            query: ({ catalogId, offset = 0 }) => `/api/catalog/${catalogId}?offset=${offset}`,
+            query: ({ catalogId, offset = 0 }) => `api/catalog/${catalogId}?offset=${offset}`,
             providesTags: ["Product"],
-            serializeQueryArgs: ({ endpointName }) => endpointName,
-            merge: (currentCache, newItems) => {
-                currentCache.products.push(...newItems.products)
-                currentCache.hasMore = newItems.hasMore
-                currentCache.nextOffset = newItems.nextOffset
+            serializeQueryArgs: ({ endpointName }) => {
+                return endpointName
             },
-            forceRefetch: ({ currentArg, previousArg }) => currentArg?.catalogId !== previousArg?.catalogId ||
-                currentArg?.offset !== previousArg?.offset
+            merge: (currentCache, newItems, { arg }) => {
+                if (arg.offset === 0) {
+                    return newItems
+                }
+                return {
+                    products: [...currentCache.products, ...newItems.products],
+                    hasMore: newItems.hasMore,
+                    nextOffset: newItems.nextOffset
+                }
+            },
+            forceRefetch: ({ currentArg, previousArg }) => {
+                return currentArg !== previousArg
+            }
+        }),
+        createCatalog: builder.mutation<{ catalog: Catalog }, FormData>({
+            query: (formData) => ({
+                url: "/api/catalog",
+                method: "POST",
+                body: formData
+            }),
+            invalidatesTags: ["Catalog"]
+        }),
+        deleteCatalog: builder.mutation<void, number>({
+            query: (id) => ({
+                url: `/api/catalog/${id}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["Catalog"]
+        }),
+        updateCatalog: builder.mutation<{catalogResult: Catalog}, FormData>({
+            query: (formData) => ({
+                url: `/api/catalog/${formData.get("id")}`,
+                method: "PUT",
+                body: formData
+            }),
+            invalidatesTags: ["Catalog"]
+        }),
+
+
+        getProductsSearch: builder.query<ProductSearch, { offset: number, query: string }>({
+            query: ({ offset = 0, query }) => `/api/search?query=${query}&offset=${offset}`,
+            providesTags: ["Search"],
+            serializeQueryArgs: ({ endpointName }) => {
+                return endpointName
+            },
+            merge: (currentCache, newItems, { arg }) => {
+                if (arg.offset === 0) {
+                    return newItems
+                }
+                return {
+                    products: [...currentCache.products, ...newItems.products],
+                    hasMore: newItems.hasMore,
+                    nextOffset: newItems.nextOffset,
+                    total: newItems.total
+                }
+            },
+            forceRefetch: ({ currentArg, previousArg }) => {
+                return currentArg !== previousArg
+            }
         }),
 
 
@@ -332,7 +419,16 @@ export const apiSlice = createApi({
             }),
             providesTags: ["Cart"],
         }),
-        deleteCart: builder.mutation<void, number>({
+        updateCart: builder.mutation<void, { quantity: number, id: number }>({
+            query: ({ id, quantity }) => ({
+                url: `/api/cart/${id}`,
+                method: "PUT",
+                body: { quantity },
+                credentials: "include"
+            }),
+            invalidatesTags: ["Cart"]
+        }),
+        deleteCart: builder.mutation<Cart, number>({
             query: (id) => ({
                 url: `/api/cart/${id}`,
                 method: "DELETE",
@@ -376,10 +472,13 @@ export const {
     useDeleteProductMutation,
     useUpdateProductMutation,
 
+    useLazyGetProductsSearchQuery,
+
     useLoginMutation,
     useRegistrationMutation,
 
     usePostRatingMutation,
+    useLazyGetAllRatingQuery,
     useGetMyRatingQuery,
     useGetOneRatingQuery,
     useGetRatingQuery,
@@ -392,10 +491,15 @@ export const {
     useGetOrderQuery,
 
     useGetCatalogQuery,
+    useGetOneCatalogQuery,
     useLazyGetProductsCatalogQuery,
+    useCreateCatalogMutation,
+    useDeleteCatalogMutation,
+    useUpdateCatalogMutation,
 
     usePostCartMutation,
     useGetCartQuery,
+    useUpdateCartMutation,
     useDeleteCartMutation,
 
     usePostForeverMutation,

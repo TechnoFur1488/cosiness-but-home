@@ -6,8 +6,9 @@ export const generateToken = (res, tokenValue, days) => {
     res.cookie("sessionId", tokenValue, {
         maxAge: days * 24 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: true,
+        secure: false,
         sameSite: "Strict",
-        path: "/"
+        path: "/",
+        domain: '192.168.0.111'
     })
 }
