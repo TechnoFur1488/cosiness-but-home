@@ -26,7 +26,6 @@ const start = async () => {
         await sequelize.sync({ alter: true })
         app.listen(PORT, () => {
             console.log(`Сервер работает на порту ${PORT}`)
-            console.log(`Доступен в локальной сети по IP: http://ВАШ_ЛОКАЛЬНЫЙ_IP:${PORT}`)
         })
     } catch (e) {
         console.error(e)
