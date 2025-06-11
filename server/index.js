@@ -13,7 +13,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use(cors({
-    origin: ["http://192.168.0.111:3000"],
+    origin: ["http://localhost:3000"],
     credentials: true,
     methods: ["POST", "GET", "PUT", "DELETE"]
 }))
